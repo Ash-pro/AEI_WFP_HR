@@ -13,7 +13,9 @@ import {
   PointTransfer,
   AdminUser,
   AdminSession,
-  AdminRole
+  AdminRole,
+  WorkPoint,
+  PointStatus
 } from './types';
 import { REAL_EMPLOYEES } from './realData';
 import { INITIAL_WORK_POINTS } from './constants';
@@ -28,7 +30,8 @@ const STORAGE_KEYS = {
   LEAVES: 'aei_wfp_leaves_store_v2',
   RESIGNATIONS: 'aei_wfp_resignations_store_v2',
   TRANSFERS: 'aei_wfp_transfers_store_v2',
-  ADMIN_SESSION: 'aei_wfp_admin_session_v2'
+  ADMIN_SESSION: 'aei_wfp_admin_session_v2',
+  POINTS: 'aei_wfp_points_store_v2'
 };
 
 // الحسابات الإدارية المعتمدة (RBAC Predefined Accounts)
@@ -262,6 +265,7 @@ class StorageService {
   private leaves: LeaveRequest[] = [];
   private resignations: ResignationRequest[] = [];
   private transfers: PointTransfer[] = [];
+  private points: Map<string, WorkPoint> = new Map();
 
   constructor() {
     this.init();
@@ -282,7 +286,12 @@ class StorageService {
     if (this.employees.size === 0) {
       REAL_EMPLOYEES.forEach((emp) => {
         const matchedPoint = INITIAL_WORK_POINTS.find(
-          (p) => p.name === emp.point_name || p.name.includes(emp.point_name)
+          (p) =>
+            (p.name === emp.point_name || p.name.includes(emp.point_name) || emp.point_name.includes(p.name)) &&
+            (!emp.supervisor_name ||
+              (p.supervisor && (p.supervisor.includes(emp.supervisor_name) || emp.supervisor_name.includes(p.supervisor))))
+        ) || INITIAL_WORK_POINTS.find(
+          (p) => p.name === emp.point_name || p.name.includes(emp.point_name) || emp.point_name.includes(p.name)
         ) || INITIAL_WORK_POINTS[0];
 
         const record: Employee = {
@@ -392,6 +401,66 @@ class StorageService {
       this.transfers = [...SEED_TRANSFERS];
       this.saveTransfers();
     }
+
+    // 8. تحميل أو تهيئة نقاط التوزيع والعيادات التغذوية
+    const savedPoints = localStorage.getItem(STORAGE_KEYS.POINTS);
+    if (savedPoints) {
+      try {
+        const parsed: WorkPoint[] = JSON.parse(savedPoints);
+        parsed.forEach((pt) => {
+          this.points.set(pt.id, {
+            ...pt,
+            status: pt.status || (pt.is_active === false ? 'مغلقة' : 'نشطة'),
+            is_active: pt.status ? pt.status === 'نشطة' : pt.is_active ?? true
+          });
+        });
+      } catch (e) {
+        console.error('Error reading points from storage', e);
+      }
+    }
+
+    // تهيئة أو مزامنة النقاط مع القائمة المحدثة (33 نقطة للمشرفين + 1 إدارة = 34)
+    const needsSync = this.points.size === 0 || !this.points.has('pt-1-hadi') || (this.points.get('pt-1')?.programs_supported.includes('TSFP') === false);
+    if (needsSync) {
+      INITIAL_WORK_POINTS.forEach((initPt) => {
+        const existing = this.points.get(initPt.id);
+        this.points.set(initPt.id, {
+          ...initPt,
+          status: existing?.status || 'نشطة',
+          status_reason: existing?.status_reason,
+          status_updated_at: existing?.status_updated_at,
+          status_updated_by: existing?.status_updated_by,
+          is_active: existing?.status ? existing.status === 'نشطة' : true
+        });
+      });
+      this.savePoints();
+    }
+
+    // مزامنة الكوادر الميدانية مع النقاط المشتركة لنقاط هادي
+    let employeesUpdated = false;
+    this.employees.forEach((emp) => {
+      if (emp.supervisor_name?.includes('هادي')) {
+        let targetId = emp.current_point_id;
+        if (emp.current_point_name?.includes('البرامج النسائية')) targetId = 'pt-1-hadi';
+        else if (emp.current_point_name?.includes('سويدي النصر')) targetId = 'pt-14-hadi';
+        else if (emp.current_point_name?.includes('كحيل')) targetId = 'pt-15-hadi';
+        else if (emp.current_point_name?.includes('الكرامة')) targetId = 'pt-20-hadi';
+        else if (emp.current_point_name?.includes('المقر ارض الانسان') || emp.current_point_name?.includes('الامل')) targetId = 'pt-22-hadi';
+        
+        if (targetId && emp.current_point_id !== targetId) {
+          emp.current_point_id = targetId;
+          employeesUpdated = true;
+        }
+      }
+    });
+    if (employeesUpdated) {
+      this.saveEmployees();
+    }
+  }
+
+  public savePoints() {
+    const list = Array.from(this.points.values());
+    localStorage.setItem(STORAGE_KEYS.POINTS, JSON.stringify(list));
   }
 
   private saveEmployees() {
@@ -671,6 +740,77 @@ class StorageService {
     const emp = this.employees.get(nid);
     const hasPin = this.hasPin(nid);
     return Boolean(emp && hasPin);
+  }
+
+  // --------------------------------------------------------------------------
+  // إدارة وتعديل نقاط التوزيع والعيادات التغذوية (Points & Clinics Control)
+  // --------------------------------------------------------------------------
+
+  public getAllPoints(): WorkPoint[] {
+    if (this.points.size === 0) {
+      this.init();
+    }
+    return Array.from(this.points.values());
+  }
+
+  public getPointById(id: string): WorkPoint | undefined {
+    return this.points.get(id);
+  }
+
+  public updatePoint(
+    id: string, 
+    updates: Partial<WorkPoint>, 
+    updatedBy: string = 'الإدارة المركزية'
+  ): { success: boolean; message: string; point?: WorkPoint } {
+    const existing = this.points.get(id);
+    if (!existing) {
+      return { success: false, message: 'نقطة العمل المحددة غير موجودة في قاعدة البيانات.' };
+    }
+
+    const updated: WorkPoint = {
+      ...existing,
+      ...updates,
+      id: existing.id,
+      status_updated_at: new Date().toISOString(),
+      status_updated_by: updatedBy
+    };
+
+    this.points.set(id, updated);
+    this.savePoints();
+
+    return {
+      success: true,
+      message: `تم تحديث بيانات نقطة (${updated.name}) بنجاح.`,
+      point: updated
+    };
+  }
+
+  public setPointStatus(
+    id: string, 
+    status: PointStatus, 
+    reason: string = '', 
+    updatedBy: string = 'الإدارة المركزية'
+  ): { success: boolean; message: string; point?: WorkPoint } {
+    const pt = this.points.get(id);
+    if (!pt) {
+      return { success: false, message: 'نقطة العمل المحددة غير موجودة في قاعدة البيانات.' };
+    }
+
+    pt.status = status;
+    pt.is_active = status === 'نشطة';
+    pt.status_reason = reason.trim() || (status === 'نشطة' ? 'استئناف العمل والتشغيل الميداني كالمعتاد' : 'تم الإيقاف بقرار إداري');
+    pt.status_updated_at = new Date().toISOString();
+    pt.status_updated_by = updatedBy;
+
+    this.points.set(id, pt);
+    this.savePoints();
+
+    const statusLabel = status === 'نشطة' ? 'تفعيل وتشغيل' : status === 'معلقة_مؤقتاً' ? 'تعليق مؤقت للعمل' : 'إغلاق النقطة';
+    return {
+      success: true,
+      message: `تم تغيير حالة نقطة (${pt.name}) إلى [${statusLabel}] بنجاح.`,
+      point: pt
+    };
   }
 
   // --------------------------------------------------------------------------

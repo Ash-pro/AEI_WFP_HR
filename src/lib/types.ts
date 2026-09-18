@@ -5,6 +5,7 @@ export type HousingType = 'ملك' | 'إيجار' | 'نزوح - مدرسة إي�
 export type PaymentMethod = 'حساب بنك فلسطين' | 'كود جوال باي / محفظة' | 'حوالة نقدية أخرى';
 export type LeaveType = 'سنوية' | 'طبية' | 'مرضية' | 'طارئة' | 'أمومة' | 'أخرى';
 export type ProgramType = 'TSFP' | 'BSFP' | 'Cash' | 'BSFP_Cash';
+export type PointStatus = 'نشطة' | 'معلقة_مؤقتاً' | 'مغلقة';
 
 export interface WorkPoint {
   id: string;
@@ -16,10 +17,18 @@ export interface WorkPoint {
   longitude?: number;
   programs_supported: string[];
   is_active: boolean;
+  status?: PointStatus;
+  status_reason?: string;
+  status_updated_at?: string;
+  status_updated_by?: string;
   supervisor?: string;
   supervisor_name?: string;
   point_area?: string;
   staff_count?: number;
+  notes?: string;
+  is_shared?: boolean;
+  partner_supervisor?: string;
+  shared_base_point_id?: string;
 }
 
 export interface PointTeam {

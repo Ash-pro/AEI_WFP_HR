@@ -76,6 +76,9 @@ export const INITIAL_WORK_POINTS: WorkPoint[] = [
     supervisor_name: pt.supervisor,
     staff_count: pt.staff_count,
     is_active: true,
+    is_shared: pt.is_shared,
+    partner_supervisor: pt.partner_supervisor,
+    shared_base_point_id: pt.shared_base_point_id,
   })),
   {
     id: 'pt-admin',
@@ -89,7 +92,7 @@ export const INITIAL_WORK_POINTS: WorkPoint[] = [
     programs_supported: ['إدارة ومتابعة'],
     supervisor: 'أمل سمير اسماعيل عوض',
     supervisor_name: 'أمل سمير اسماعيل عوض',
-    staff_count: 1,
+    staff_count: 5,
     is_active: true,
   },
 ];

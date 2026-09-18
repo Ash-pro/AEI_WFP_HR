@@ -322,61 +322,63 @@ export const ApprovalsHubPage: React.FC = () => {
               <p className="text-xs text-slate-400">جميع الكوادر الميدانية معتمدة ومفعلة بنجاح.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {displayedPendingEmployees.map((emp) => (
-                <div key={emp.national_id} className="bg-white rounded-2xl p-5 border border-amber-200 shadow-sm space-y-4 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 left-0 h-1 bg-amber-400" />
+                <div key={emp.national_id} className="bg-white rounded-3xl p-6 border border-amber-200/90 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-5 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 left-0 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500" />
                   
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h3 className="text-sm font-black text-slate-900">{emp.full_name_ar}</h3>
-                      <p className="text-xs text-slate-500 font-mono mt-0.5">هوية: {emp.national_id}</p>
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-base font-black text-slate-900 leading-snug">{emp.full_name_ar}</h3>
+                        <p className="text-xs text-slate-400 font-mono mt-0.5">رقم الهوية: {emp.national_id}</p>
+                      </div>
+                      <span className="px-3 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-800 border border-amber-200 shrink-0 animate-pulse">
+                        معلق قيد الاعتماد
+                      </span>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 shrink-0">
-                      معلق قيد الاعتماد
-                    </span>
+
+                    <div className="bg-slate-50/80 rounded-2xl p-4 text-xs space-y-2 text-slate-600 border border-slate-200/70">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400 font-bold">المسمى الوظيفي:</span>
+                        <span className="font-bold text-slate-800">{emp.job_title}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400 font-bold">نقطة العمل:</span>
+                        <span className="font-bold text-aei-purple">{emp.current_point_name || 'غير محدد'}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400 font-bold">المشرف الميداني:</span>
+                        <span className="font-bold text-slate-800">{emp.supervisor_name || 'أشرف الصليبي'}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400 font-bold">رقم الجوال:</span>
+                        <span className="font-bold font-mono text-slate-800" dir="ltr">{emp.phone}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="bg-slate-50 rounded-xl p-3 text-xs space-y-1.5 text-slate-600 border border-slate-100">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">المسمى:</span>
-                      <span className="font-bold text-slate-800">{emp.job_title}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">النقطة:</span>
-                      <span className="font-bold text-slate-800">{emp.current_point_name || 'غير محدد'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">المشرف:</span>
-                      <span className="font-bold text-slate-800">{emp.supervisor_name || 'أشرف الصليبي'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">الهاتف:</span>
-                      <span className="font-bold font-mono text-slate-800">{emp.phone}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-1">
+                  <div className="flex items-center gap-2.5 pt-3 border-t border-slate-100">
                     <button
                       onClick={() => setInspectingEmployee(emp)}
-                      className="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
-                      <Eye className="w-3.5 h-3.5" />
-                      فحص 33 حقلاً
+                      <Eye className="w-3.5 h-3.5 text-slate-500" />
+                      <span>فحص 33 حقلاً</span>
                     </button>
                     <button
                       onClick={() => handleApproveEmployee(emp.national_id)}
-                      className="py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1 cursor-pointer shadow-sm"
+                      className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm hover:shadow transition-all"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      اعتماد
+                      <span>اعتماد</span>
                     </button>
                     <button
                       onClick={() => handleRejectEmployee(emp.national_id)}
-                      className="py-2 px-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs cursor-pointer"
+                      className="py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs cursor-pointer transition-colors"
                       title="طلب تعديل أو رفض"
                     >
-                      <XCircle className="w-3.5 h-3.5" />
+                      <XCircle className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -404,52 +406,55 @@ export const ApprovalsHubPage: React.FC = () => {
               <p className="text-xs text-slate-400">ملفات جميع الكوادر محدثة ومطابقة.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {pendingUpdates.map((req) => (
-                <div key={req.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-sm font-black text-slate-900">{req.employee_name}</h3>
-                      <p className="text-xs text-slate-500 font-mono">الهوية: {req.national_id}</p>
-                    </div>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                      طلب تعديل {req.field_label_ar}
-                    </span>
-                  </div>
-
-                  {/* مقارنة بصرية بين القديم والجديد */}
-                  <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-xs">
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 block">القيمة السابقة (الأصلية):</span>
-                      <span className="font-semibold text-rose-700 bg-rose-50 px-2 py-1 rounded block border border-rose-100 line-through">
-                        {req.old_value || '(فارغ)'}
+                <div key={req.id} className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-5">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-base font-black text-slate-900 leading-snug">{req.employee_name}</h3>
+                        <p className="text-xs text-slate-400 font-mono mt-0.5">رقم الهوية: {req.national_id}</p>
+                      </div>
+                      <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0">
+                        طلب تعديل: {req.field_label_ar}
                       </span>
                     </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 block">القيمة الجديدة المقترحة:</span>
-                      <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded block border border-emerald-100">
-                        {req.new_value}
-                      </span>
+
+                    {/* مقارنة بصرية بين القديم والجديد */}
+                    <div className="grid grid-cols-2 gap-3 bg-slate-50/80 p-4 rounded-2xl border border-slate-200/70 text-xs">
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] font-bold text-slate-400 block">القيمة السابقة (الأصلية):</span>
+                        <span className="font-semibold text-rose-700 bg-rose-50/80 p-2 rounded-xl block border border-rose-200 line-through break-words">
+                          {req.old_value || '(فارغ)'}
+                        </span>
+                      </div>
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] font-bold text-slate-400 block">القيمة الجديدة المقترحة:</span>
+                        <span className="font-bold text-emerald-800 bg-emerald-50/80 p-2 rounded-xl block border border-emerald-200 break-words">
+                          {req.new_value}
+                        </span>
+                      </div>
                     </div>
+
+                    {req.reason && (
+                      <p className="text-xs text-slate-600 italic bg-slate-50 p-3 rounded-xl border border-slate-100 leading-relaxed">
+                        <span className="font-bold text-slate-500 not-italic">المبرر الإداري: </span>
+                        {req.reason}
+                      </p>
+                    )}
                   </div>
 
-                  {req.reason && (
-                    <p className="text-[11px] text-slate-500 italic bg-slate-50 p-2 rounded-lg">
-                      <span className="font-bold">المبرر:</span> {req.reason}
-                    </p>
-                  )}
-
-                  <div className="flex items-center gap-2 pt-1">
+                  <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
                     <button
                       onClick={() => handleApproveUpdate(req.id)}
-                      className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm hover:shadow transition-all"
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      اعتماد التعديل وتطبيقه
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>اعتماد التعديل وتطبيقه</span>
                     </button>
                     <button
                       onClick={() => handleRejectUpdate(req.id)}
-                      className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs cursor-pointer"
+                      className="py-2.5 px-5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs cursor-pointer transition-colors"
                     >
                       رفض
                     </button>
@@ -478,70 +483,72 @@ export const ApprovalsHubPage: React.FC = () => {
               <h3 className="text-base font-bold text-slate-800">لا توجد طلبات إجازة مسجلة</h3>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {leaves.map((leave) => (
-                <div key={leave.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-sm font-black text-slate-900">{leave.employee_name}</h3>
-                      <p className="text-xs text-slate-500 font-mono">هوية: {leave.national_id || leave.employee_id}</p>
-                    </div>
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
-                      leave.status === 'معتمد_نهائي'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : leave.status === 'مرفوض'
-                        ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                        : 'bg-amber-50 text-amber-700 border border-amber-200'
-                    }`}>
-                      {leave.status === 'معتمد_نهائي' ? 'معتمدة' : leave.status === 'مرفوض' ? 'مرفوضة' : 'معلقة للمراجعة'}
-                    </span>
-                  </div>
-
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs space-y-1.5">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">نوع الإجازة:</span>
-                      <span className="font-bold text-aei-purple">{leave.leave_type}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">المدة الإجمالية:</span>
-                      <span className="font-bold text-slate-800">{leave.total_days} أيام</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">الفترة:</span>
-                      <span className="font-semibold text-slate-700 font-mono">
-                        من {leave.start_date} إلى {leave.end_date}
+                <div key={leave.id} className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-5">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-base font-black text-slate-900">{leave.employee_name}</h3>
+                        <p className="text-xs text-slate-500 font-mono mt-0.5">رقم الهوية: {leave.national_id || leave.employee_id}</p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-black shrink-0 ${
+                        leave.status === 'معتمد_نهائي'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : leave.status === 'مرفوض'
+                          ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                          : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      }`}>
+                        {leave.status === 'معتمد_نهائي' ? 'معتمدة' : leave.status === 'مرفوض' ? 'مرفوضة' : 'معلقة للمراجعة'}
                       </span>
                     </div>
-                    {leave.notes && (
-                      <div className="pt-1 border-t border-slate-200 text-slate-600 italic">
-                        {leave.notes}
+
+                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs space-y-2.5">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">نوع الإجازة:</span>
+                        <span className="font-black text-aei-purple bg-purple-50 px-2.5 py-0.5 rounded-md border border-purple-100">{leave.leave_type}</span>
                       </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">المدة الإجمالية:</span>
+                        <span className="font-black text-slate-800 bg-white px-2.5 py-0.5 rounded-md border border-slate-200">{leave.total_days} أيام</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">الفترة:</span>
+                        <span className="font-bold text-slate-700 font-mono text-[11px]">
+                          من {leave.start_date} إلى {leave.end_date}
+                        </span>
+                      </div>
+                      {leave.notes && (
+                        <div className="pt-2 border-t border-slate-200 text-slate-600 italic bg-white p-2.5 rounded-xl border border-slate-100">
+                          {leave.notes}
+                        </div>
+                      )}
+                    </div>
+
+                    {leave.medical_report_url && (
+                      <a
+                        href={leave.medical_report_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block text-center py-2.5 px-4 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold border border-blue-200 transition-colors cursor-pointer"
+                      >
+                        معاينة التقرير الطبي المرفق 📎
+                      </a>
                     )}
                   </div>
 
-                  {leave.medical_report_url && (
-                    <a
-                      href={leave.medical_report_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="block text-center py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-colors cursor-pointer"
-                    >
-                      معاينة التقرير الطبي المرفق
-                    </a>
-                  )}
-
                   {leave.status === 'معلق' && (
-                    <div className="flex items-center gap-2 pt-1">
+                    <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
                       <button
                         onClick={() => handleApproveLeave(leave.id || '')}
-                        className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1 cursor-pointer shadow-sm"
+                        className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs hover:shadow transition-all"
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        اعتماد الإجازة
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>اعتماد الإجازة</span>
                       </button>
                       <button
                         onClick={() => handleRejectLeave(leave.id || '')}
-                        className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs cursor-pointer"
+                        className="py-2.5 px-4 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 cursor-pointer transition-colors"
                       >
                         رفض
                       </button>
@@ -581,69 +588,71 @@ export const ApprovalsHubPage: React.FC = () => {
               <h3 className="text-base font-bold text-slate-800">لا توجد طلبات استقالة مسجلة</h3>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {resignations.map((res) => (
-                <div key={res.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-sm font-black text-slate-900">{res.employee_name}</h3>
-                      <p className="text-xs text-slate-500 font-mono">الهوية: {res.national_id || res.employee_id}</p>
-                    </div>
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
-                      res.status === 'معتمد'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : res.status === 'مرفوض'
-                        ? 'bg-slate-100 text-slate-700'
-                        : 'bg-rose-50 text-rose-700 border border-rose-200'
-                    }`}>
-                      {res.status === 'معتمد' ? 'استقالة معتمدة' : res.status === 'مرفوض' ? 'مرفوضة' : 'بانتظار البديل والمخالصة'}
-                    </span>
-                  </div>
-
-                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-xs space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">عنوان السبب:</span>
-                      <span className="font-bold text-slate-800">{res.reason_title}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">آخر يوم عمل مقترح:</span>
-                      <span className="font-semibold text-rose-600 font-mono">{res.last_working_date}</span>
-                    </div>
-                    <div className="text-slate-600 italic bg-white p-2 rounded-lg border border-slate-200">
-                      {res.reason_details}
-                    </div>
-
-                    {res.replacement_employee_name && (
-                      <div className="flex justify-between pt-1 border-t border-slate-200">
-                        <span className="text-emerald-700 font-bold">الكادر البديل المعين:</span>
-                        <span className="font-black text-emerald-900">{res.replacement_employee_name}</span>
+                <div key={res.id} className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-5">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-base font-black text-slate-900">{res.employee_name}</h3>
+                        <p className="text-xs text-slate-500 font-mono mt-0.5">الهوية: {res.national_id || res.employee_id}</p>
                       </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-black shrink-0 ${
+                        res.status === 'معتمد'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : res.status === 'مرفوض'
+                          ? 'bg-slate-100 text-slate-700 border border-slate-200'
+                          : 'bg-rose-50 text-rose-700 border border-rose-200'
+                      }`}>
+                        {res.status === 'معتمد' ? 'استقالة معتمدة' : res.status === 'مرفوض' ? 'مرفوضة' : 'بانتظار البديل والمخالصة'}
+                      </span>
+                    </div>
+
+                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs space-y-2.5">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">سبب الاستقالة:</span>
+                        <span className="font-bold text-slate-800">{res.reason_title}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">آخر يوم عمل مقترح:</span>
+                        <span className="font-bold text-rose-600 font-mono bg-rose-50 px-2 py-0.5 rounded border border-rose-100">{res.last_working_date}</span>
+                      </div>
+                      <div className="text-slate-700 italic bg-white p-3 rounded-xl border border-slate-200 leading-relaxed">
+                        {res.reason_details}
+                      </div>
+
+                      {res.replacement_employee_name && (
+                        <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                          <span className="text-emerald-700 font-bold">الكادر البديل المعين:</span>
+                          <span className="font-black text-emerald-900 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">{res.replacement_employee_name}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {res.hand_letter_url && (
+                      <a
+                        href={res.hand_letter_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block text-center py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition-colors cursor-pointer"
+                      >
+                        معاينة الخطاب المكتوب والموقع يدوياً 📄
+                      </a>
                     )}
                   </div>
 
-                  {res.hand_letter_url && (
-                    <a
-                      href={res.hand_letter_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="block text-center py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
-                    >
-                      معاينة الخطاب المكتوب والموقع يدوياً
-                    </a>
-                  )}
-
                   {res.status === 'معلق' && (
-                    <div className="flex items-center gap-2 pt-1">
+                    <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
                       <button
                         onClick={() => handleOpenResignationModal(res)}
-                        className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                        className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs hover:shadow transition-all"
                       >
                         <UserCheck className="w-4 h-4" />
-                        تعيين البديل واعتماد الاستقالة
+                        <span>تعيين البديل واعتماد الاستقالة</span>
                       </button>
                       <button
                         onClick={() => handleRejectResignation(res.id || '')}
-                        className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs cursor-pointer"
+                        className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs border border-slate-200 cursor-pointer transition-colors"
                       >
                         رفض
                       </button>

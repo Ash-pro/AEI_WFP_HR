@@ -60,20 +60,42 @@ export const Footer: React.FC = () => {
                 <span>ashraf.2lsalibi@gmail.com</span>
               </li>
               <li className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-aei-gold flex-shrink-0" />
-                <span dir="ltr">059-9000000</span>
+                <Phone className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <a
+                  href="https://wa.me/972598466903"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-emerald-400 transition-colors font-mono"
+                  dir="ltr"
+                  title="تواصل عبر واتساب"
+                >
+                  00972598466903
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom copyright */}
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
-          <p>© {new Date().getFullYear()} جمعية أرض الإنسان - فلسطين • برنامج الأغذية العالمي (WFP). جميع الحقوق محفوظة.</p>
-          <p className="flex items-center gap-1">
-            صُمم بأعلى معايير الحماية لدعم الطواقم الإنسانية في غزة
-            <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+        {/* Bottom copyright & Developer Credit */}
+        <div className="pt-6 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 gap-4">
+          <p className="text-slate-500">
+            © {new Date().getFullYear()} جمعية أرض الإنسان - فلسطين • برنامج الأغذية العالمي (WFP). جميع الحقوق محفوظة.
           </p>
+          
+          <div className="flex items-center gap-2.5 bg-slate-800/80 px-4 py-2 rounded-2xl border border-slate-700/60 shadow-inner">
+            <span className="text-slate-300 font-medium">تصميم وتنفيذ: م. أشرف أسامة الصليبي</span>
+            <span className="text-slate-600">|</span>
+            <a
+              href="https://wa.me/972598466903"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-400 hover:text-emerald-300 font-mono font-bold transition-all inline-flex items-center gap-1.5 hover:underline"
+              title="مراسلة مباشرة عبر واتساب"
+            >
+              <span dir="ltr">00972598466903</span>
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            </a>
+          </div>
         </div>
       </div>
     </footer>

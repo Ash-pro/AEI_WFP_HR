@@ -17,9 +17,9 @@ export const LandingPage: React.FC = () => {
               منظومة إنسانية موحدة • جمعية أرض الإنسان & برنامج الأغذية العالمي
             </div>
             
-            <h1 className="text-3xl sm:text-5xl font-black text-slate-900 leading-tight tracking-tight">
-              نظام إدارة العمليات والكوادر الميدانية <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-l from-aei-purple via-aei-green to-aei-gold">
+            <h1 className="text-3xl sm:text-5xl font-black text-slate-900 leading-[1.45] sm:leading-[1.4]">
+              <span className="block">نظام إدارة العمليات والكوادر الميدانية</span>
+              <span className="block text-2xl sm:text-4xl mt-3 text-transparent bg-clip-text bg-gradient-to-l from-aei-purple via-aei-green to-aei-gold font-sans font-black">
                 AEI · WFP · HR
               </span>
             </h1>

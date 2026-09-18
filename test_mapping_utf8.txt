@@ -1,0 +1,57 @@
+Total points count: 33
+Pt: pt-1 | البرامج النسائية - النصيرات | Sup: أشرف الصليبي | Staff matched: 5 (Expected: 5) | Progs: ['TSFP', 'BSFP', 'Cash']
+Pt: pt-2 | الحكر | Sup: أشرف الصليبي | Staff matched: 4 (Expected: 4) | Progs: ['BSFP', 'Cash']
+Pt: pt-3 | الزهور | Sup: أشرف الصليبي | Staff matched: 4 (Expected: 4) | Progs: ['BSFP', 'Cash']
+Pt: pt-4 | العبادلة | Sup: أشرف الصليبي | Staff matched: 4 (Expected: 4) | Progs: ['BSFP', 'Cash']
+Pt: pt-5 | المحطة | Sup: أشرف الصليبي | Staff matched: 5 (Expected: 5) | Progs: ['BSFP', 'Cash']
+Pt: pt-6 | النبراس | Sup: أشرف الصليبي | Staff matched: 4 (Expected: 4) | Progs: ['BSFP', 'Cash']
+Pt: pt-7 | حنين | Sup: أشرف الصليبي | Staff matched: 5 (Expected: 5) | Progs: ['BSFP', 'Cash']
+Pt: pt-8 | صفا - النصيرات | Sup: أشرف الصليبي | Staff matched: 4 (Expected: 4) | Progs: ['BSFP', 'Cash']
+Pt: pt-9 | ابو دلال | Sup: براء الاسطل | Staff matched: 5 (Expected: 5) | Progs: ['BSFP', 'Cash']
+Pt: pt-10 | ابو معيلق | Sup: براء الاسطل | Staff matched: 5 (Expected: 5) | Progs: ['BSFP', 'Cash']
+Pt: pt-11 | المخيمات المصرية | Sup: براء الاسطل | Staff matched: 5 (Expected: 5) | Progs: ['BSFP', 'Cash']
+Pt: pt-12 | المسحال | Sup: براء الاسطل | Staff matched: 5 (Expected: 5) | Progs: ['BSFP', 'Cash']
+Pt: pt-13 | دوار فلسطين | Sup: براء الاسطل | Staff matched: 5 (Expected: 5) | Progs: ['BSFP', 'Cash']
+Pt: pt-14 | سويدي النصر | Sup: براء الاسطل | Staff matched: 5 (Expected: 5) | Progs: ['TSFP', 'BSFP', 'Cash']
+Pt: pt-15 | كحيل | Sup: براء الاسطل | Staff matched: 5 (Expected: 5) | Progs: ['TSFP', 'BSFP', 'Cash']
+Pt: pt-16 | نقطة النفق | Sup: براء الاسطل | Staff matched: 5 (Expected: 5) | Progs: ['BSFP', 'Cash']
+Pt: pt-17 | السكة / البريج | Sup: هادي الأحول | Staff matched: 4 (Expected: 4) | Progs: ['TSFP']
+Pt: pt-18 | الصقر | Sup: هادي الأحول | Staff matched: 3 (Expected: 3) | Progs: ['TSFP']
+Pt: pt-19 | الغرابلي | Sup: هادي الأحول | Staff matched: 3 (Expected: 3) | Progs: ['TSFP']
+Pt: pt-20 | الكرامة - فش فرش | Sup: ياسمين النجيلي | Staff matched: 5 (Expected: 5) | Progs: ['TSFP', 'BSFP', 'Cash']
+Pt: pt-21 | المغازي | Sup: هادي الأحول | Staff matched: 4 (Expected: 4) | Progs: ['TSFP']
+Pt: pt-22 | المقر ارض الانسان (الامل) | Sup: ياسمين النجيلي | Staff matched: 4 (Expected: 4) | Progs: ['TSFP', 'BSFP', 'Cash']
+Pt: pt-23 | ارض الانسان جاسر | Sup: ياسمين النجيلي | Staff matched: 5 (Expected: 5) | Progs: ['BSFP', 'Cash']
+Pt: pt-24 | الاحبة | Sup: ياسمين النجيلي | Staff matched: 5 (Expected: 5) | Progs: ['BSFP', 'Cash']
+Pt: pt-25 | الخير | Sup: ياسمين النجيلي | Staff matched: 4 (Expected: 4) | Progs: ['BSFP', 'Cash']
+Pt: pt-26 | الربيع | Sup: ياسمين النجيلي | Staff matched: 5 (Expected: 5) | Progs: ['BSFP', 'Cash']
+Pt: pt-27 | الرمال الدهبية | Sup: ياسمين النجيلي | Staff matched: 5 (Expected: 5) | Progs: ['BSFP', 'Cash']
+Pt: pt-28 | أرض الطيبة | Sup: ياسمين النجيلي | Staff matched: 4 (Expected: 4) | Progs: ['BSFP', 'Cash']
+Pt: pt-1-hadi | البرامج النسائية - النصيرات | Sup: هادي الأحول | Staff matched: 3 (Expected: 3) | Progs: ['TSFP', 'BSFP', 'Cash']
+Pt: pt-14-hadi | سويدي النصر | Sup: هادي الأحول | Staff matched: 3 (Expected: 3) | Progs: ['TSFP', 'BSFP', 'Cash']
+Pt: pt-15-hadi | كحيل | Sup: هادي الأحول | Staff matched: 3 (Expected: 3) | Progs: ['TSFP', 'BSFP', 'Cash']
+Pt: pt-20-hadi | الكرامة - فش فرش | Sup: هادي الأحول | Staff matched: 2 (Expected: 2) | Progs: ['TSFP', 'BSFP', 'Cash']
+Pt: pt-22-hadi | المقر ارض الانسان (الامل) | Sup: هادي الأحول | Staff matched: 3 (Expected: 3) | Progs: ['TSFP', 'BSFP', 'Cash']
+
+--- Summary ---
+أشرف الصليبي: 8 points, 35 staff
+براء الاسطل: 8 points, 40 staff
+هادي الأحول: 9 points, 28 staff
+ياسمين النجيلي: 8 points, 37 staff
+
+Total TSFP points in system: 14
+TSFP points:
+  - pt-1: البرامج النسائية - النصيرات (Sup: أشرف الصليبي)
+  - pt-14: سويدي النصر (Sup: براء الاسطل)
+  - pt-15: كحيل (Sup: براء الاسطل)
+  - pt-17: السكة / البريج (Sup: هادي الأحول)
+  - pt-18: الصقر (Sup: هادي الأحول)
+  - pt-19: الغرابلي (Sup: هادي الأحول)
+  - pt-20: الكرامة - فش فرش (Sup: ياسمين النجيلي)
+  - pt-21: المغازي (Sup: هادي الأحول)
+  - pt-22: المقر ارض الانسان (الامل) (Sup: ياسمين النجيلي)
+  - pt-1-hadi: البرامج النسائية - النصيرات (Sup: هادي الأحول)
+  - pt-14-hadi: سويدي النصر (Sup: هادي الأحول)
+  - pt-15-hadi: كحيل (Sup: هادي الأحول)
+  - pt-20-hadi: الكرامة - فش فرش (Sup: هادي الأحول)
+  - pt-22-hadi: المقر ارض الانسان (الامل) (Sup: هادي الأحول)

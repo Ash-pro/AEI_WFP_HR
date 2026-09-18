@@ -27,6 +27,9 @@ export interface RealPointRecord {
   address?: string;
   latitude?: number;
   longitude?: number;
+  is_shared?: boolean;
+  partner_supervisor?: string;
+  shared_base_point_id?: string;
 }
 
 export const REAL_COORDINATOR = {
@@ -65,7 +68,7 @@ export const REAL_SUPERVISORS = [
     role: 'مشرف ميداني',
     zones: 'الوسطى، خانيونس، غزة',
     program: 'TSFP (علاجي) + BSFP (وقائي)',
-    points_count: 10,
+    points_count: 9,
     staff_count: 28
   },
   {
@@ -87,14 +90,17 @@ export const REAL_POINTS: RealPointRecord[] = [
     "geo_zone": "الوسطى",
     "point_area": "النصيرات",
     "supervisor": "أشرف الصليبي",
-    "staff_count": 8,
+    "staff_count": 5,
     "programs_supported": [
+      "TSFP",
       "BSFP",
       "Cash"
     ],
     "address": "مخيم النصيرات - شارع السوق، بالقرب من مركز البرامج النسائية",
     "latitude": 31.4485,
-    "longitude": 34.3912
+    "longitude": 34.3912,
+    "is_shared": true,
+    "partner_supervisor": "هادي الأحول"
   },
   {
     "id": "pt-2",
@@ -282,14 +288,17 @@ export const REAL_POINTS: RealPointRecord[] = [
     "geo_zone": "غزة",
     "point_area": "غزة",
     "supervisor": "براء الاسطل",
-    "staff_count": 8,
+    "staff_count": 5,
     "programs_supported": [
+      "TSFP",
       "BSFP",
       "Cash"
     ],
     "address": "شمال غزة - حي النصر، محيط العيادة السويدية",
     "latitude": 31.534,
-    "longitude": 34.456
+    "longitude": 34.456,
+    "is_shared": true,
+    "partner_supervisor": "هادي الأحول"
   },
   {
     "id": "pt-15",
@@ -297,14 +306,17 @@ export const REAL_POINTS: RealPointRecord[] = [
     "geo_zone": "غزة",
     "point_area": "غزة",
     "supervisor": "براء الاسطل",
-    "staff_count": 8,
+    "staff_count": 5,
     "programs_supported": [
+      "TSFP",
       "BSFP",
       "Cash"
     ],
     "address": "غزة - حي الرمال الجنوبي، بالقرب من مكتبة وعمارة كحيل",
     "latitude": 31.515,
-    "longitude": 34.448
+    "longitude": 34.448,
+    "is_shared": true,
+    "partner_supervisor": "هادي الأحول"
   },
   {
     "id": "pt-16",
@@ -329,8 +341,7 @@ export const REAL_POINTS: RealPointRecord[] = [
     "supervisor": "هادي الأحول",
     "staff_count": 4,
     "programs_supported": [
-      "BSFP",
-      "Cash"
+      "TSFP"
     ],
     "address": "مخيم البريج - منطقة السكة، المدخل الغربي للمخيم",
     "latitude": 31.439,
@@ -344,8 +355,7 @@ export const REAL_POINTS: RealPointRecord[] = [
     "supervisor": "هادي الأحول",
     "staff_count": 3,
     "programs_supported": [
-      "BSFP",
-      "Cash"
+      "TSFP"
     ],
     "address": "خانيونس - شارع الصقر، محيط مدرسة كمال ناصر",
     "latitude": 31.351,
@@ -359,8 +369,7 @@ export const REAL_POINTS: RealPointRecord[] = [
     "supervisor": "هادي الأحول",
     "staff_count": 3,
     "programs_supported": [
-      "BSFP",
-      "Cash"
+      "TSFP"
     ],
     "address": "دير البلح - منطقة الغرابلي، بالقرب من مدرسة النخيل",
     "latitude": 31.421,
@@ -372,14 +381,17 @@ export const REAL_POINTS: RealPointRecord[] = [
     "geo_zone": "خانيونس",
     "point_area": "خانيونس",
     "supervisor": "ياسمين النجيلي",
-    "staff_count": 7,
+    "staff_count": 5,
     "programs_supported": [
+      "TSFP",
       "BSFP",
       "Cash"
     ],
     "address": "مواصي خانيونس - منطقة فش فرش، شارع الكرامة الساحلي",
     "latitude": 31.339,
-    "longitude": 34.271
+    "longitude": 34.271,
+    "is_shared": true,
+    "partner_supervisor": "هادي الأحول"
   },
   {
     "id": "pt-21",
@@ -389,8 +401,7 @@ export const REAL_POINTS: RealPointRecord[] = [
     "supervisor": "هادي الأحول",
     "staff_count": 4,
     "programs_supported": [
-      "BSFP",
-      "Cash"
+      "TSFP"
     ],
     "address": "مخيم المغازي - المركز الصحي القديم، شارع السوق المركزي",
     "latitude": 31.425,
@@ -402,14 +413,17 @@ export const REAL_POINTS: RealPointRecord[] = [
     "geo_zone": "خانيونس",
     "point_area": "خانيونس",
     "supervisor": "ياسمين النجيلي",
-    "staff_count": 7,
+    "staff_count": 4,
     "programs_supported": [
+      "TSFP",
       "BSFP",
       "Cash"
     ],
     "address": "خانيونس - حي الأمل، مركز جمعية أرض الإنسان AEI الرئيسي",
     "latitude": 31.353,
-    "longitude": 34.298
+    "longitude": 34.298,
+    "is_shared": true,
+    "partner_supervisor": "هادي الأحول"
   },
   {
     "id": "pt-23",
@@ -500,8 +514,104 @@ export const REAL_POINTS: RealPointRecord[] = [
     "address": "غرب خانيونس - منطقة أرض الطيبة، محيط مجمع ناصر الطبي",
     "latitude": 31.356,
     "longitude": 34.293
+  },
+  {
+    "id": "pt-1-hadi",
+    "name": "البرامج النسائية - النصيرات",
+    "geo_zone": "الوسطى",
+    "point_area": "النصيرات",
+    "supervisor": "هادي الأحول",
+    "staff_count": 3,
+    "programs_supported": [
+      "TSFP",
+      "BSFP",
+      "Cash"
+    ],
+    "address": "مخيم النصيرات - شارع السوق، بالقرب من مركز البرامج النسائية",
+    "latitude": 31.4485,
+    "longitude": 34.3912,
+    "is_shared": true,
+    "partner_supervisor": "أشرف الصليبي",
+    "shared_base_point_id": "pt-1"
+  },
+  {
+    "id": "pt-14-hadi",
+    "name": "سويدي النصر",
+    "geo_zone": "غزة",
+    "point_area": "غزة",
+    "supervisor": "هادي الأحول",
+    "staff_count": 3,
+    "programs_supported": [
+      "TSFP",
+      "BSFP",
+      "Cash"
+    ],
+    "address": "شمال غزة - حي النصر، محيط العيادة السويدية",
+    "latitude": 31.534,
+    "longitude": 34.456,
+    "is_shared": true,
+    "partner_supervisor": "براء الاسطل",
+    "shared_base_point_id": "pt-14"
+  },
+  {
+    "id": "pt-15-hadi",
+    "name": "كحيل",
+    "geo_zone": "غزة",
+    "point_area": "غزة",
+    "supervisor": "هادي الأحول",
+    "staff_count": 3,
+    "programs_supported": [
+      "TSFP",
+      "BSFP",
+      "Cash"
+    ],
+    "address": "غزة - حي الرمال الجنوبي، بالقرب من مكتبة وعمارة كحيل",
+    "latitude": 31.515,
+    "longitude": 34.448,
+    "is_shared": true,
+    "partner_supervisor": "براء الاسطل",
+    "shared_base_point_id": "pt-15"
+  },
+  {
+    "id": "pt-20-hadi",
+    "name": "الكرامة - فش فرش",
+    "geo_zone": "خانيونس",
+    "point_area": "خانيونس",
+    "supervisor": "هادي الأحول",
+    "staff_count": 2,
+    "programs_supported": [
+      "TSFP",
+      "BSFP",
+      "Cash"
+    ],
+    "address": "مواصي خانيونس - منطقة فش فرش، شارع الكرامة الساحلي",
+    "latitude": 31.339,
+    "longitude": 34.271,
+    "is_shared": true,
+    "partner_supervisor": "ياسمين النجيلي",
+    "shared_base_point_id": "pt-20"
+  },
+  {
+    "id": "pt-22-hadi",
+    "name": "المقر ارض الانسان (الامل)",
+    "geo_zone": "خانيونس",
+    "point_area": "خانيونس",
+    "supervisor": "هادي الأحول",
+    "staff_count": 3,
+    "programs_supported": [
+      "TSFP",
+      "BSFP",
+      "Cash"
+    ],
+    "address": "خانيونس - حي الأمل، مركز جمعية أرض الإنسان AEI الرئيسي",
+    "latitude": 31.353,
+    "longitude": 34.298,
+    "is_shared": true,
+    "partner_supervisor": "ياسمين النجيلي",
+    "shared_base_point_id": "pt-22"
   }
 ];
+
 
 export const REAL_EMPLOYEES: RealEmployeeRecord[] = [
   {
