@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 160" width="100%" height="100%">
+  <defs>
+    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#832A85"/>
+      <stop offset="100%" stop-color="#6B1D6F"/>
+    </linearGradient>
+    <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34A853"/>
+      <stop offset="100%" stop-color="#1E7E34"/>
+    </linearGradient>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F2BA49"/>
+      <stop offset="100%" stop-color="#D99A36"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(20, 15)">
+    <path d="M70 122 C48 108 22 75 22 46 C22 24 38 10 58 10 C70 10 82 17 89 28 C80 52 74 85 70 122 Z" fill="url(#purpleGradient)"/>
+    <path d="M96 24 C104 14 117 8 132 8 C155 8 172 24 172 48 C172 70 152 92 108 98 C102 70 98 44 96 24 Z" fill="url(#greenGradient)"/>
+    <path d="M112 104 C148 98 178 86 178 62 C178 84 154 112 124 126 C102 136 84 136 78 130 C90 122 102 114 112 104 Z" fill="url(#goldGradient)"/>
+  </g>
+  <g transform="translate(215, 30)">
+    <text x="0" y="55" font-family="'Cairo', 'Tajawal', 'Inter', system-ui, sans-serif" font-size="52" font-weight="900" fill="#1E293B" letter-spacing="2">
+      AEI <tspan fill="#64748B" font-size="42" font-weight="400">·</tspan> WFP <tspan fill="#64748B" font-size="42" font-weight="400">·</tspan> HR
+    </text>
+    <text x="5" y="92" font-family="'Cairo', 'Tajawal', system-ui, sans-serif" font-size="22" font-weight="700" fill="#475569" letter-spacing="0.5">
+      جمعية أرض الإنسان <tspan fill="#D99A36">•</tspan> نظام الموارد البشرية
+    </text>
+  </g>
+</svg>
