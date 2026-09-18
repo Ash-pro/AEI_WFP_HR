@@ -420,7 +420,7 @@ class StorageService {
     }
 
     // تهيئة أو مزامنة النقاط مع القائمة المحدثة (33 نقطة للمشرفين + 1 إدارة = 34)
-    const needsSync = this.points.size === 0 || !this.points.has('pt-1-hadi') || (this.points.get('pt-1')?.programs_supported.includes('TSFP') === false);
+    const needsSync = this.points.size < INITIAL_WORK_POINTS.length || !this.points.has('pt-1-hadi') || (this.points.get('pt-1')?.programs_supported.includes('TSFP') === false);
     if (needsSync) {
       INITIAL_WORK_POINTS.forEach((initPt) => {
         const existing = this.points.get(initPt.id);

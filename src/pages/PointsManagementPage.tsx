@@ -335,27 +335,75 @@ export const PointsManagementPage: React.FC = () => {
     });
   }, [filteredPoints, accessibleSupervisorConfigs, selectedSupervisorId, searchTerm, selectedZone, selectedProgram, selectedStatusFilter]);
 
-  // إحصائيات عامة للنقاط والعيادات المعتمدة في النظام
-  const totalLocationsCount = useMemo(() => {
-    // عدد المواقع الجغرافية الفعلية (28 ميدانية + 1 إدارة = 29)
-    const set = new Set(points.map(p => p.shared_base_point_id || p.id));
-    return set.size;
+  // =========================================================================
+  // الإحصائيات العامة والديناميكية للنقاط والعيادات المعتمدة (تحديث تلقائي كامل)
+  // =========================================================================
+
+  // 1. النقاط الميدانية للمشرفين (باستثناء مكتب الإدارة المركزية والتنسيق)
+  const fieldPoints = useMemo(() => {
+    return points.filter(p => p.id !== 'pt-admin' && p.geo_zone !== 'إداري');
   }, [points]);
 
-  // عيادات ونقاط TSFP (علاجي سريري): 4 مخصصة + 5 مشتركة = 9
-  const tsfpClinicsCount = useMemo(() => {
-    return points.filter(p => (p.supervisor?.includes('هادي') || p.supervisor_name?.includes('هادي')) && p.programs_supported?.includes('TSFP')).length;
+  const adminPoints = useMemo(() => {
+    return points.filter(p => p.id === 'pt-admin' || p.geo_zone === 'إداري');
   }, [points]);
 
-  // نقاط وقائي وكاش BSFP: 19 مخصصة + 5 مشتركة = 24
-  const bsfpPointsCount = useMemo(() => {
-    return points.filter(p => p.programs_supported?.includes('BSFP') && !p.id.endsWith('-hadi')).length;
-  }, [points]);
-
+  // إجمالي نقاط المشرفين الميدانيين (أشرف: 8، براء: 8، ياسمين: 8، هادي: 9 = 33 نقطة)
+  const fieldPointsCount = fieldPoints.length;
+  // إجمالي كافة النقاط والمقار في المنظومة (34 نقطة ومقر)
   const totalPointsCount = points.length;
-  const activePointsCount = points.filter(p => (p.status || 'نشطة') === 'نشطة').length;
-  const suspendedPointsCount = points.filter(p => p.status === 'معلقة_مؤقتاً').length;
-  const closedPointsCount = points.filter(p => p.status === 'مغلقة').length;
+
+  // 2. عدد المشرفين الميدانيين المعتمدين (محسوب تلقائياً من قائمة النقاط)
+  const supervisorsCount = useMemo(() => {
+    const sups = new Set<string>();
+    fieldPoints.forEach(p => {
+      const s = (p.supervisor || p.supervisor_name || '').trim();
+      if (s) {
+        if (s.includes('أشرف')) sups.add('أشرف');
+        else if (s.includes('براء')) sups.add('براء');
+        else if (s.includes('هادي')) sups.add('هادي');
+        else if (s.includes('ياسمين')) sups.add('ياسمين');
+        else sups.add(s);
+      }
+    });
+    return sups.size;
+  }, [fieldPoints]);
+
+  // 3. عيادات ونقاط TSFP (علاجي سريري) - محسوبة تلقائياً:
+  const tsfpClinics = useMemo(() => {
+    return points.filter(p => 
+      (p.supervisor?.includes('هادي') || p.supervisor_name?.includes('هادي') || p.id.endsWith('-hadi')) && 
+      p.programs_supported?.includes('TSFP')
+    );
+  }, [points]);
+  const tsfpClinicsCount = tsfpClinics.length; // 9
+  const tsfpDedicatedCount = useMemo(() => {
+    return tsfpClinics.filter(p => !p.programs_supported?.includes('BSFP')).length; // 4
+  }, [tsfpClinics]);
+  const tsfpSharedCount = useMemo(() => {
+    return tsfpClinics.filter(p => p.programs_supported?.includes('BSFP')).length; // 5
+  }, [tsfpClinics]);
+
+  // 4. نقاط وقائي وكاش BSFP - محسوبة تلقائياً:
+  const bsfpPoints = useMemo(() => {
+    return points.filter(p => 
+      p.programs_supported?.includes('BSFP') && 
+      !p.id.endsWith('-hadi') && 
+      !p.supervisor?.includes('هادي')
+    );
+  }, [points]);
+  const bsfpPointsCount = bsfpPoints.length; // 24
+  const bsfpDedicatedCount = useMemo(() => {
+    return bsfpPoints.filter(p => !p.programs_supported?.includes('TSFP')).length; // 19
+  }, [bsfpPoints]);
+  const bsfpSharedCount = useMemo(() => {
+    return bsfpPoints.filter(p => p.programs_supported?.includes('TSFP') || p.is_shared).length; // 5
+  }, [bsfpPoints]);
+
+  // 5. مؤشرات الجاهزية التشغيلية (محسوبة ديناميكياً)
+  const activePointsCount = useMemo(() => points.filter(p => (p.status || 'نشطة') === 'نشطة').length, [points]);
+  const suspendedPointsCount = useMemo(() => points.filter(p => p.status === 'معلقة_مؤقتاً').length, [points]);
+  const closedPointsCount = useMemo(() => points.filter(p => p.status === 'مغلقة').length, [points]);
 
   // تبديل الحساب الإداري (للمعاينة السريعة واختبار الصلاحيات)
   const switchRole = (admin: AdminUser) => {
@@ -574,26 +622,39 @@ export const PointsManagementPage: React.FC = () => {
         </div>
       </div>
 
-      {/* كروت الإحصائيات السريعة للنقاط والعيادات التغذوية */}
+      {/* كروت الإحصائيات السريعة للنقاط والعيادات التغذوية (محسوبة ديناميكياً وتلقائياً) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* 1. إجمالي النقاط والمقار */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-          <span className="text-xs font-bold text-slate-400 block">إجمالي النقاط والمقار</span>
+        {/* 1. إجمالي النقاط والعيادات الميدانية */}
+        <div className="bg-white p-5 rounded-2xl border border-purple-200/80 shadow-2xs space-y-1 bg-purple-50/20">
+          <span className="text-xs font-bold text-purple-700 flex items-center gap-1.5">
+            <Building2 className="w-4 h-4 text-aei-purple" />
+            إجمالي النقاط والعيادات
+          </span>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900">{totalLocationsCount}</span>
-            <span className="text-xs font-bold text-purple-700">موقعاً جغرافياً</span>
+            <span className="text-2xl sm:text-3xl font-black text-slate-900">
+              {isSupervisor ? filteredPoints.length : fieldPointsCount}
+            </span>
+            <span className="text-xs font-bold text-purple-700">
+              {isSupervisor ? 'نقاط تابعة لك' : 'نقطة وعيادة ميدانية'}
+            </span>
           </div>
-          <span className="text-[10px] text-slate-500 block">28 ميدانية + 1 إدارة (33 نقطة للمشرفين)</span>
+          <span className="text-[10px] text-slate-500 block">
+            {isSupervisor
+              ? `من إجمالي ${fieldPointsCount} نقطة ميدانية معتمدة بالمنظومة`
+              : `${fieldPointsCount} نقطة للمشرفين ${adminPoints.length > 0 ? `+ ${adminPoints.length} مقر إدارة (${totalPointsCount} إجمالي)` : ''}`}
+          </span>
         </div>
 
         {/* 2. المشرفون الميدانيون */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
           <span className="text-xs font-bold text-slate-400 block">المشرفون الميدانيون</span>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900">4</span>
+            <span className="text-2xl sm:text-3xl font-black text-slate-900">{supervisorsCount}</span>
             <span className="text-xs font-bold text-slate-700">مشرفين معتمدين</span>
           </div>
-          <span className="text-[10px] text-slate-500 block">+ منسقة المشروع (إدارة عليا)</span>
+          <span className="text-[10px] text-slate-500 block">
+            {adminPoints.length > 0 ? '+ منسقة المشروع (إدارة عليا)' : 'إشراف ميداني كامل'}
+          </span>
         </div>
 
         {/* 3. عيادات TSFP (علاجي) */}
@@ -606,7 +667,9 @@ export const PointsManagementPage: React.FC = () => {
             <span className="text-2xl sm:text-3xl font-black text-rose-700">{tsfpClinicsCount}</span>
             <span className="text-xs font-bold text-rose-800">عيادات ونقاط</span>
           </div>
-          <span className="text-[10px] text-rose-600 block">4 مخصصة + 5 مشتركة مع BSFP</span>
+          <span className="text-[10px] text-rose-600 block">
+            {tsfpDedicatedCount} مخصصة + {tsfpSharedCount} مشتركة مع BSFP
+          </span>
         </div>
 
         {/* 4. نقاط وقائي وكاش BSFP */}
@@ -619,7 +682,9 @@ export const PointsManagementPage: React.FC = () => {
             <span className="text-2xl sm:text-3xl font-black text-emerald-700">{bsfpPointsCount}</span>
             <span className="text-xs font-bold text-emerald-800">نقطة توزيع</span>
           </div>
-          <span className="text-[10px] text-emerald-600 block">19 مخصصة + 5 مشتركة مع TSFP</span>
+          <span className="text-[10px] text-emerald-600 block">
+            {bsfpDedicatedCount} مخصصة + {bsfpSharedCount} مشتركة مع TSFP
+          </span>
         </div>
       </div>
 
