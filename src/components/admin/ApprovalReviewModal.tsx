@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { storageService } from '../../lib/storageService';
 import { Employee, ProfileUpdateRequest } from '../../lib/types';
 import { 
   X, CheckCircle2, AlertCircle, Clock, UserCheck, 
   ShieldCheck, FileText, ChevronDown, Check, UserX, Eye
 } from 'lucide-react';
+import { EmployeeFullDetailsView } from './EmployeeFullDetailsView';
 
 interface ApprovalReviewModalProps {
   onClose: () => void;
@@ -13,6 +14,7 @@ interface ApprovalReviewModalProps {
   onDataChanged?: () => void;
   employee?: Employee | null;
   isOpen?: boolean;
+  initialTab?: 'employees' | 'edits' | 'full_record';
 }
 
 export const ApprovalReviewModal: React.FC<ApprovalReviewModalProps> = ({
@@ -21,25 +23,43 @@ export const ApprovalReviewModal: React.FC<ApprovalReviewModalProps> = ({
   approverName = 'أشرف أسامة دياب الصليبي',
   onDataChanged,
   employee,
-  isOpen = true
+  isOpen = true,
+  initialTab
 }) => {
   if (!isOpen) return null;
 
-  const [activeSubTab, setActiveSubTab] = useState<'employees' | 'edits'>('employees');
+  const [allEmployees, setAllEmployees] = useState<Employee[]>(() => storageService.getAllEmployees());
+  const [activeSubTab, setActiveSubTab] = useState<'employees' | 'edits' | 'full_record'>(() => {
+    if (initialTab) return initialTab;
+    if (employee) return 'full_record';
+    return 'full_record';
+  });
   const [pendingEmployees, setPendingEmployees] = useState<Employee[]>(() => storageService.getPendingEmployees());
   const [pendingEdits, setPendingEdits] = useState<ProfileUpdateRequest[]>(() => storageService.getPendingUpdateRequests());
   
-  // Expanded employee for detailed view
-  const [selectedEmp, setSelectedEmp] = useState<Employee | null>(() => employee || null);
+  // Selected employee for detailed view
+  const [selectedEmp, setSelectedEmp] = useState<Employee | null>(() => employee || (allEmployees.length > 0 ? allEmployees[0] : null));
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (employee) setSelectedEmp(employee);
+  useEffect(() => {
+    if (employee) {
+      setSelectedEmp(employee);
+      setActiveSubTab('full_record');
+    }
   }, [employee]);
 
   const refreshData = () => {
-    setPendingEmployees(storageService.getPendingEmployees());
-    setPendingEdits(storageService.getPendingUpdateRequests());
+    const pEmps = storageService.getPendingEmployees();
+    const pEdits = storageService.getPendingUpdateRequests();
+    const all = storageService.getAllEmployees();
+    setPendingEmployees(pEmps);
+    setPendingEdits(pEdits);
+    setAllEmployees(all);
+
+    if (selectedEmp) {
+      const updated = all.find(e => e.national_id === selectedEmp.national_id);
+      if (updated) setSelectedEmp(updated);
+    }
     if (onDataChanged) onDataChanged();
   };
 
@@ -47,9 +67,6 @@ export const ApprovalReviewModal: React.FC<ApprovalReviewModalProps> = ({
     storageService.approveEmployee(nationalId, `${approverRole}: ${approverName}`);
     setActionSuccessMsg(`تم اعتماد وتفعيل الكادر (${empName}) بنجاح، وتحولت حالته إلى "نشط".`);
     refreshData();
-    if (selectedEmp?.national_id === nationalId) {
-      setSelectedEmp(null);
-    }
     setTimeout(() => setActionSuccessMsg(null), 3000);
   };
 
@@ -81,7 +98,7 @@ export const ApprovalReviewModal: React.FC<ApprovalReviewModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-4xl w-full overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[92vh] flex flex-col">
+      <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-5xl w-full overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[92vh] flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-l from-aei-purple to-purple-800 p-6 text-white relative flex-shrink-0">
           <button
@@ -96,44 +113,76 @@ export const ApprovalReviewModal: React.FC<ApprovalReviewModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-black">نافذة اعتمادات الكوادر والملفات الميدانية</h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-400 text-amber-950">
-                  {totalPending} طلب معلق
-                </span>
+                <h2 className="text-xl font-black">نافذة ملفات الكوادر والاعتمادات الميدانية</h2>
+                {totalPending > 0 ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-400 text-amber-950">
+                    {totalPending} طلب معلق
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-400/20 text-emerald-200 border border-emerald-400/30">
+                    كافة السجلات معتمدة
+                  </span>
+                )}
               </div>
-              <p className="text-xs text-white/80">
-                صلاحية الاعتماد: <span className="font-bold text-aei-gold">{approverRole}</span> ({approverName})
+              <p className="text-xs text-white/80 mt-0.5">
+                نظام إدارة الموارد البشرية AEI & WFP • صلاحية المشغل: <span className="font-bold text-aei-gold">{approverRole}</span> ({approverName})
               </p>
             </div>
           </div>
         </div>
 
         {/* Subtabs Bar */}
-        <div className="bg-slate-50 border-b border-slate-200 px-6 pt-3 flex gap-4 text-xs font-bold flex-shrink-0">
+        <div className="bg-slate-50 border-b border-slate-200 px-6 pt-3 flex gap-4 text-xs font-bold flex-shrink-0 overflow-x-auto">
+          {/* تبويب: كافة بيانات الموظف المسجلة */}
+          <button
+            onClick={() => {
+              setActiveSubTab('full_record');
+              if (!selectedEmp && allEmployees.length > 0) {
+                setSelectedEmp(allEmployees[0]);
+              }
+            }}
+            className={`pb-3 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeSubTab === 'full_record' 
+                ? 'border-aei-purple text-aei-purple font-black' 
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Eye className="w-4 h-4" />
+            <span>كافة بيانات الموظف المسجلة</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+              activeSubTab === 'full_record' ? 'bg-purple-100 text-aei-purple font-black' : 'bg-slate-200 text-slate-600'
+            }`}>
+              33 حقلاً تفصيلياً
+            </span>
+          </button>
+
+          {/* تبويب: طلبات تسجيل الكوادر الجديدة */}
           <button
             onClick={() => setActiveSubTab('employees')}
-            className={`pb-3 border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
+            className={`pb-3 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeSubTab === 'employees' 
-                ? 'border-aei-purple text-aei-purple font-extrabold' 
+                ? 'border-aei-purple text-aei-purple font-black' 
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
             <UserCheck className="w-4 h-4" />
-            طلبات تسجيل الكوادر الجديدة
+            <span>طلبات تسجيل الكوادر الجديدة</span>
             <span className={`px-2 py-0.5 rounded-full text-[10px] ${pendingEmployees.length > 0 ? 'bg-amber-100 text-amber-800 font-bold' : 'bg-slate-200 text-slate-600'}`}>
               {pendingEmployees.length}
             </span>
           </button>
+
+          {/* تبويب: طلبات تعديل البيانات الشخصية */}
           <button
             onClick={() => setActiveSubTab('edits')}
-            className={`pb-3 border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
+            className={`pb-3 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeSubTab === 'edits' 
-                ? 'border-aei-purple text-aei-purple font-extrabold' 
+                ? 'border-aei-purple text-aei-purple font-black' 
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
             <FileText className="w-4 h-4" />
-            طلبات تعديل البيانات الشخصية
+            <span>طلبات تعديل البيانات الشخصية</span>
             <span className={`px-2 py-0.5 rounded-full text-[10px] ${pendingEdits.length > 0 ? 'bg-purple-100 text-aei-purple font-bold' : 'bg-slate-200 text-slate-600'}`}>
               {pendingEdits.length}
             </span>
@@ -150,6 +199,33 @@ export const ApprovalReviewModal: React.FC<ApprovalReviewModalProps> = ({
 
         {/* Scrollable Content Body */}
         <div className="p-6 overflow-y-auto flex-1 space-y-4">
+          {/* تبويب 1: استعراض كافة بيانات الموظف المسجلة (33 حقلاً) */}
+          {activeSubTab === 'full_record' && (
+            <div>
+              {selectedEmp ? (
+                <EmployeeFullDetailsView
+                  employee={selectedEmp}
+                  allEmployees={allEmployees}
+                  onSelectEmployee={(emp) => setSelectedEmp(emp)}
+                  onApprove={handleApproveEmployee}
+                  onReject={handleRejectEmployee}
+                  showSelector={true}
+                />
+              ) : (
+                <div className="py-16 text-center space-y-3">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                    <Eye className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-base font-extrabold text-slate-800">الرجاء اختيار كادر لعرض بياناته</h3>
+                  <p className="text-xs text-slate-500">
+                    اختر أي كادر من القائمة أو جدول الموظفين للاطلاع على ملفه الميداني والأكاديمي والمالي الشامل.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* تبويب 2: طلبات تسجيل الكوادر الجديدة */}
           {activeSubTab === 'employees' && (
             <>
               {pendingEmployees.length > 0 ? (
@@ -177,11 +253,14 @@ export const ApprovalReviewModal: React.FC<ApprovalReviewModalProps> = ({
 
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => setSelectedEmp(selectedEmp?.national_id === emp.national_id ? null : emp)}
-                            className="px-3 py-2 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center gap-1 cursor-pointer"
+                            onClick={() => {
+                              setSelectedEmp(emp);
+                              setActiveSubTab('full_record');
+                            }}
+                            className="px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-aei-purple font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <Eye className="w-3.5 h-3.5" />
-                            {selectedEmp?.national_id === emp.national_id ? 'إخفاء التفاصيل' : 'فحص التفاصيل (33 حقلاً)'}
+                            فحص التفاصيل (33 حقلاً)
                           </button>
                           <button
                             onClick={() => handleRejectEmployee(emp.national_id, emp.full_name_ar)}
@@ -219,26 +298,6 @@ export const ApprovalReviewModal: React.FC<ApprovalReviewModalProps> = ({
                           <span className="font-bold truncate block">{emp.current_address || 'دير البلح'}</span>
                         </div>
                       </div>
-
-                      {/* Expanded 33-field Inspector */}
-                      {selectedEmp?.national_id === emp.national_id && (
-                        <div className="mt-3 p-4 rounded-xl bg-purple-50/50 border border-purple-100 text-xs space-y-3 animate-in fade-in duration-150">
-                          <h4 className="font-bold text-aei-purple border-b border-purple-200 pb-1">
-                            كافة البيانات المدخلة في الاستمارة (33 حقلاً):
-                          </h4>
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            <div><span className="text-slate-500">الاسم بالإنجليزية:</span> <span className="font-semibold">{emp.full_name_en || '-'}</span></div>
-                            <div><span className="text-slate-500">تاريخ الميلاد:</span> <span className="font-semibold">{emp.birth_date || '-'}</span></div>
-                            <div><span className="text-slate-500">الحالة الاجتماعية:</span> <span className="font-semibold">{emp.marital_status || 'أعزب'}</span></div>
-                            <div><span className="text-slate-500">المؤهل العلمي:</span> <span className="font-semibold">{emp.degree || '-'} ({emp.major || '-'})</span></div>
-                            <div><span className="text-slate-500">الجامعة:</span> <span className="font-semibold">{emp.university || '-'}</span></div>
-                            <div><span className="text-slate-500">العنوان قبل الحرب:</span> <span className="font-semibold">{emp.prewar_gov || '-'} - {emp.prewar_address || '-'}</span></div>
-                            <div><span className="text-slate-500">الآيبان / الحساب:</span> <span className="font-mono font-semibold" dir="ltr">{emp.iban_or_phone || '-'}</span></div>
-                            <div><span className="text-slate-500">فرع البنك:</span> <span className="font-semibold">{emp.bank_branch || '-'}</span></div>
-                            <div><span className="text-slate-500">تاريخ التسجيل:</span> <span className="font-semibold">{new Date(emp.created_at || '').toLocaleDateString('ar-EG')}</span></div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -249,13 +308,21 @@ export const ApprovalReviewModal: React.FC<ApprovalReviewModalProps> = ({
                   </div>
                   <h3 className="text-base font-extrabold text-slate-800">لا توجد طلبات تسجيل كوادر معلقة</h3>
                   <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                    كافة الكوادر المسجلة في النظام معتمدة ومفعلة حالياً. عند قيام أي موظف بتعبئة استمارة التسجيل الجديدة ستظهر هنا فوراً لمراجعتها واعتمادها.
+                    كافة الكوادر المسجلة في النظام معتمدة ومفعلة حالياً. يمكنك استعراض ملفاتهم الكاملة من تبويب "كافة بيانات الموظف المسجلة".
                   </p>
+                  <button
+                    onClick={() => setActiveSubTab('full_record')}
+                    className="mt-2 px-4 py-2 rounded-xl bg-aei-purple text-white text-xs font-bold inline-flex items-center gap-1.5 hover:bg-opacity-95 cursor-pointer shadow-sm"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    الانتقال لاستعراض كافة بيانات الكوادر المسجلة
+                  </button>
                 </div>
               )}
             </>
           )}
 
+          {/* تبويب 3: طلبات تعديل البيانات الشخصية */}
           {activeSubTab === 'edits' && (
             <>
               {pendingEdits.length > 0 ? (

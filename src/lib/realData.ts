@@ -24,6 +24,9 @@ export interface RealPointRecord {
   supervisor: string;
   staff_count: number;
   programs_supported: string[];
+  address?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export const REAL_COORDINATOR = {
@@ -88,7 +91,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "مخيم النصيرات - شارع السوق، بالقرب من مركز البرامج النسائية",
+    "latitude": 31.4485,
+    "longitude": 34.3912
   },
   {
     "id": "pt-2",
@@ -100,7 +106,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "دير البلح - منطقة الحكر، بالقرب من مسجد الحكر",
+    "latitude": 31.4112,
+    "longitude": 34.3541
   },
   {
     "id": "pt-3",
@@ -112,7 +121,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "دير البلح - حي الزهور، غرب شارع صلاح الدين",
+    "latitude": 31.423,
+    "longitude": 34.3615
   },
   {
     "id": "pt-4",
@@ -124,7 +136,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "القرارة - منطقة العبادلة، بالقرب من مفترق القرارة",
+    "latitude": 31.3784,
+    "longitude": 34.3312
   },
   {
     "id": "pt-5",
@@ -136,7 +151,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "دير البلح - منطقة المحطة، محيط سكة الحديد القديمة",
+    "latitude": 31.4187,
+    "longitude": 34.3524
   },
   {
     "id": "pt-6",
@@ -148,7 +166,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "القرارة - منطقة النبراس، بالقرب من شارع صلاح الدين",
+    "latitude": 31.3721,
+    "longitude": 34.3289
   },
   {
     "id": "pt-7",
@@ -160,7 +181,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "القرارة - شارع حنين، غرب طريق المطاحن",
+    "latitude": 31.3755,
+    "longitude": 34.324
   },
   {
     "id": "pt-8",
@@ -172,7 +196,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "مخيم النصيرات - منطقة صفا، بالقرب من مدرسة النصيرات الإعدادية",
+    "latitude": 31.452,
+    "longitude": 34.3875
   },
   {
     "id": "pt-9",
@@ -184,7 +211,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "النصيرات - شارع صلاح الدين، محيط مجمع أبو دلال التجاري",
+    "latitude": 31.442,
+    "longitude": 34.385
   },
   {
     "id": "pt-10",
@@ -196,7 +226,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "دير البلح - منطقة أبو معيلق، امتداد شارع البركة",
+    "latitude": 31.415,
+    "longitude": 34.347
   },
   {
     "id": "pt-11",
@@ -208,7 +241,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "غزة - محيط المخيمات المصرية للإيواء، غرب المدينة",
+    "latitude": 31.512,
+    "longitude": 34.435
   },
   {
     "id": "pt-12",
@@ -220,7 +256,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "غرب غزة - مخيم الشاطئ، محيط مؤسسة المسحال الثقافية",
+    "latitude": 31.528,
+    "longitude": 34.441
   },
   {
     "id": "pt-13",
@@ -232,7 +271,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "وسط مدينة غزة - محيط ميدان وساحة فلسطين (الساحة)",
+    "latitude": 31.506,
+    "longitude": 34.463
   },
   {
     "id": "pt-14",
@@ -244,7 +286,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "شمال غزة - حي النصر، محيط العيادة السويدية",
+    "latitude": 31.534,
+    "longitude": 34.456
   },
   {
     "id": "pt-15",
@@ -256,7 +301,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "غزة - حي الرمال الجنوبي، بالقرب من مكتبة وعمارة كحيل",
+    "latitude": 31.515,
+    "longitude": 34.448
   },
   {
     "id": "pt-16",
@@ -268,7 +316,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "غزة - شارع النفق، بالقرب من محطة الشوا للمحروقات",
+    "latitude": 31.522,
+    "longitude": 34.471
   },
   {
     "id": "pt-17",
@@ -280,7 +331,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "مخيم البريج - منطقة السكة، المدخل الغربي للمخيم",
+    "latitude": 31.439,
+    "longitude": 34.402
   },
   {
     "id": "pt-18",
@@ -292,7 +346,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "خانيونس - شارع الصقر، محيط مدرسة كمال ناصر",
+    "latitude": 31.351,
+    "longitude": 34.308
   },
   {
     "id": "pt-19",
@@ -304,7 +361,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "دير البلح - منطقة الغرابلي، بالقرب من مدرسة النخيل",
+    "latitude": 31.421,
+    "longitude": 34.358
   },
   {
     "id": "pt-20",
@@ -316,7 +376,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "مواصي خانيونس - منطقة فش فرش، شارع الكرامة الساحلي",
+    "latitude": 31.339,
+    "longitude": 34.271
   },
   {
     "id": "pt-21",
@@ -328,7 +391,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "مخيم المغازي - المركز الصحي القديم، شارع السوق المركزي",
+    "latitude": 31.425,
+    "longitude": 34.382
   },
   {
     "id": "pt-22",
@@ -340,7 +406,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "خانيونس - حي الأمل، مركز جمعية أرض الإنسان AEI الرئيسي",
+    "latitude": 31.353,
+    "longitude": 34.298
   },
   {
     "id": "pt-23",
@@ -352,7 +421,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "وسط خانيونس - شارع البحر، عمارة جاسر التجارية",
+    "latitude": 31.345,
+    "longitude": 34.303
   },
   {
     "id": "pt-24",
@@ -364,7 +436,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "القرارة - منطقة الأحبة، بالقرب من شارع صلاح الدين",
+    "latitude": 31.376,
+    "longitude": 34.326
   },
   {
     "id": "pt-25",
@@ -376,7 +451,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "خانيونس - منطقة الخير للإيواء، بالقرب من المستشفى الميداني",
+    "latitude": 31.348,
+    "longitude": 34.285
   },
   {
     "id": "pt-26",
@@ -388,7 +466,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "القرارة - حي الربيع، شرق طريق المطاحن القديم",
+    "latitude": 31.373,
+    "longitude": 34.335
   },
   {
     "id": "pt-27",
@@ -400,7 +481,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "مواصي خانيونس - منطقة الرمال الذهبية الساحلية",
+    "latitude": 31.332,
+    "longitude": 34.265
   },
   {
     "id": "pt-28",
@@ -412,7 +496,10 @@ export const REAL_POINTS: RealPointRecord[] = [
     "programs_supported": [
       "BSFP",
       "Cash"
-    ]
+    ],
+    "address": "غرب خانيونس - منطقة أرض الطيبة، محيط مجمع ناصر الطبي",
+    "latitude": 31.356,
+    "longitude": 34.293
   }
 ];
 

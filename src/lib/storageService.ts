@@ -660,6 +660,19 @@ class StorageService {
     return this.employees.get(nid);
   }
 
+  public hasPin(nationalId: string): boolean {
+    const nid = nationalId.trim();
+    const storedPin = this.pins.get(nid);
+    return Boolean(storedPin && storedPin.trim().length >= 4);
+  }
+
+  public isRegisteredWithPin(nationalId: string): boolean {
+    const nid = nationalId.trim();
+    const emp = this.employees.get(nid);
+    const hasPin = this.hasPin(nid);
+    return Boolean(emp && hasPin);
+  }
+
   // --------------------------------------------------------------------------
   // إدارة الأصول والعهد الميدانية (AST-01001 Series)
   // --------------------------------------------------------------------------

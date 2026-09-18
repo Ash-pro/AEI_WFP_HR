@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StepIndicator } from '../components/registration/StepIndicator';
 import { PALESTINE_GOVERNORATES, JOB_CATEGORIES, MARITAL_STATUSES, EDUCATION_DEGREES, UNIVERSITIES_LIST, HOUSING_TYPES, PAYMENT_METHODS, BANK_BRANCHES, INITIAL_WORK_POINTS, INITIAL_TEAMS, INITIAL_SUPERVISORS } from '../lib/constants';
 import { REAL_EMPLOYEES } from '../lib/realData';
@@ -47,6 +48,7 @@ const INITIAL_FORM_DATA: Partial<Employee> = {
 };
 
 export const RegisterPage: React.FC = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<Partial<Employee>>(() => {
     const saved = localStorage.getItem('aei_hr_registration_draft');
@@ -55,6 +57,7 @@ export const RegisterPage: React.FC = () => {
 
   const [idChecked, setIdChecked] = useState(false);
   const [isPreImported, setIsPreImported] = useState(false);
+  const [alreadyRegisteredWithPin, setAlreadyRegisteredWithPin] = useState(false);
   const [checkingId, setCheckingId] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingIdCard, setUploadingIdCard] = useState(false);
@@ -81,6 +84,7 @@ export const RegisterPage: React.FC = () => {
   const handleCheckId = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setAlreadyRegisteredWithPin(false);
 
     const nid = (formData.national_id || '').trim();
     if (!/^\d{9}$/.test(nid)) {
@@ -91,7 +95,34 @@ export const RegisterPage: React.FC = () => {
     setCheckingId(true);
 
     try {
-      // 1. Check Supabase DB
+      // 1. أولاً: التحقق الأمني - هل هذا الكادر مسجل مسبقاً ولديه رمز مرور PIN محلياً أو في سوبابيز؟
+      const localHasPin = storageService.hasPin(nid);
+      let supabaseHasPin = false;
+
+      try {
+        const { data: supaEmp } = await supabase
+          .from('employees')
+          .select('id, national_id, pin, profile_completed')
+          .eq('national_id', nid)
+          .maybeSingle();
+
+        if (supaEmp && (supaEmp.pin || supaEmp.profile_completed)) {
+          supabaseHasPin = true;
+        }
+      } catch (err) {
+        console.warn('Supabase pin check fallback:', err);
+      }
+
+      // إذا كان الحساب مسجلاً مسبقاً ولديه رمز مرور PIN:
+      // نمنع كشف وعرض بياناته الشخصية في الاستمارة العامة، ونوجهه لتسجيل الدخول عبر البوابة
+      if (localHasPin || supabaseHasPin) {
+        setCheckingId(false);
+        setAlreadyRegisteredWithPin(true);
+        return;
+      }
+
+      // 2. إذا لم يكن لديه رمز PIN بعد (يسجل لأول مرة):
+      // نبقي السيناريو كما هو كي يستكمل باقي البيانات الـ 33 ويعين رمز PIN جديد خاص به
       const { data } = await supabase
         .from('employees')
         .select('*')
@@ -110,7 +141,7 @@ export const RegisterPage: React.FC = () => {
         return;
       }
 
-      // 2. Check REAL_EMPLOYEES from the official project dataset
+      // 3. التحقق من كشف الكوادر الأساسي REAL_EMPLOYEES (145 كادراً) لتسهيل التعبئة
       const realStaff = REAL_EMPLOYEES.find((emp) => emp.national_id === nid);
       if (realStaff) {
         const matchedPoint =
@@ -148,7 +179,14 @@ export const RegisterPage: React.FC = () => {
       setCheckingId(false);
       setIdChecked(true);
     } catch (err) {
-      // Offline fallback: check local REAL_EMPLOYEES
+      // Offline fallback:
+      const localHasPin = storageService.hasPin(nid);
+      if (localHasPin) {
+        setCheckingId(false);
+        setAlreadyRegisteredWithPin(true);
+        return;
+      }
+
       const realStaff = REAL_EMPLOYEES.find((emp) => emp.national_id === nid);
       if (realStaff) {
         const matchedPoint =
@@ -377,51 +415,108 @@ export const RegisterPage: React.FC = () => {
       </div>
 
       {!idChecked ? (
-        <div className="max-w-lg mx-auto bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
-          <form onSubmit={handleCheckId} className="space-y-5">
-            <div className="w-14 h-14 rounded-2xl bg-aei-purple/10 text-aei-purple flex items-center justify-center mx-auto mb-2">
-              <ShieldCheck className="w-8 h-8" />
+        alreadyRegisteredWithPin ? (
+          <div className="max-w-lg mx-auto bg-white rounded-3xl p-8 shadow-xl border border-purple-100 text-center space-y-6 animate-in fade-in duration-200">
+            <div className="w-16 h-16 rounded-3xl bg-purple-100 text-aei-purple flex items-center justify-center mx-auto shadow-inner">
+              <Lock className="w-8 h-8" />
             </div>
-            <div className="text-center space-y-1">
-              <h2 className="text-xl font-bold text-slate-900">التحقق من رقم الهوية</h2>
-              <p className="text-xs text-slate-500">
-                أدخل رقم هويتك (9 أرقام). إذا كانت بياناتك الأساسية مستوردة مسبقاً من كشف الإكسل، سيتم جلبها لتسهيل استكمال باقي الحقول.
+
+            <div className="space-y-2">
+              <span className="text-xs font-black uppercase px-3.5 py-1 rounded-full bg-purple-50 text-aei-purple border border-purple-200">
+                حساب مسجل مسبقاً ومحمي برمز سري PIN
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900">
+                الحساب مسجل مسبقاً برمز PIN
+              </h2>
+              <p className="text-slate-600 text-xs leading-relaxed max-w-md mx-auto">
+                رقم الهوية الوطنية <span className="font-mono font-black text-aei-purple text-sm px-2 py-0.5 bg-purple-50 rounded-lg border border-purple-200">{formData.national_id}</span> مسجل بالفعل في منظومة AEI-WFP ولديه رمز مرور سري (PIN).
               </p>
             </div>
 
-            {errorMsg && (
-              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span>{errorMsg}</span>
+            <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-right space-y-2 text-xs text-amber-900">
+              <div className="flex items-center gap-2 font-bold text-amber-800">
+                <ShieldCheck className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                <span>حماية الخصوصية وسرية البيانات:</span>
               </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2">
-                رقم الهوية الفلسطينية (9 أرقام) <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                maxLength={9}
-                value={formData.national_id || ''}
-                onChange={(e) => updateField('national_id', e.target.value.replace(/\D/g, ''))}
-                placeholder="أدخل 9 أرقام الهوية"
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-aei-purple focus:ring-2 focus:ring-aei-purple/20 text-center text-lg font-black tracking-widest"
-                required
-                autoFocus
-              />
+              <p className="text-amber-800/90 leading-relaxed text-[11px]">
+                نظراً لكون الحساب مسجلاً ومحمياً برمز PIN، تم حجب البيانات الشخصية ومنع فتح الاستمارة العامة لضمان الخصوصية. يمكنك تسجيل الدخول بالهوية ورمز المرور السري (PIN) لاستعراض ملفك أو تقديم طلبات تعديل البيانات والإجازات.
+              </p>
             </div>
 
-            <button
-              type="submit"
-              disabled={checkingId}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-l from-aei-purple to-aei-purple-light text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-            >
-              {checkingId ? 'جاري التحقق...' : 'متابعة إلى الاستمارة'}
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-          </form>
-        </div>
+            <div className="space-y-3 pt-2">
+              <button
+                type="button"
+                onClick={() => navigate(`/portal?id=${formData.national_id}`)}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-l from-aei-purple to-aei-purple-light hover:to-aei-purple text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>تسجيل الدخول عبر الهوية والرقم السري (بوابة الموظف)</span>
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setAlreadyRegisteredWithPin(false);
+                  updateField('national_id', '');
+                  localStorage.removeItem('aei_hr_registration_draft');
+                }}
+                className="w-full py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-all cursor-pointer"
+              >
+                التحقق من رقم هوية آخر
+              </button>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+              <span>نسيت رمز المرور (PIN)؟ يرجى التواصل مع المشرف الميداني المسؤول عن نقطتك أو منسقة المشروع لإعادة تعيينه.</span>
+            </div>
+          </div>
+        ) : (
+          <div className="max-w-lg mx-auto bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
+            <form onSubmit={handleCheckId} className="space-y-5">
+              <div className="w-14 h-14 rounded-2xl bg-aei-purple/10 text-aei-purple flex items-center justify-center mx-auto mb-2">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <div className="text-center space-y-1">
+                <h2 className="text-xl font-bold text-slate-900">التحقق من رقم الهوية</h2>
+                <p className="text-xs text-slate-500">
+                  أدخل رقم هويتك (9 أرقام). إذا كانت هذه أول مرة تسجل فيها ستفتح لك الاستمارة لاستكمال الـ 33 حقلاً وتعيين رمز المرور السري (PIN)، أما إذا كان حسابك مسجلاً برمز PIN فسيتم توجيهك لبوابة الدخول.
+                </p>
+              </div>
+
+              {errorMsg && (
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-2">
+                  رقم الهوية الفلسطينية (9 أرقام) <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  maxLength={9}
+                  value={formData.national_id || ''}
+                  onChange={(e) => updateField('national_id', e.target.value.replace(/\D/g, ''))}
+                  placeholder="أدخل 9 أرقام الهوية"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-aei-purple focus:ring-2 focus:ring-aei-purple/20 text-center text-lg font-black tracking-widest"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={checkingId}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-l from-aei-purple to-aei-purple-light text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {checkingId ? 'جاري التحقق...' : 'متابعة إلى الاستمارة'}
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+            </form>
+          </div>
+        )
       ) : (
         <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-xl border border-slate-100">
           {isPreImported && (

@@ -21,7 +21,9 @@ import {
   ArrowRight,
   Stethoscope,
   HeartHandshake,
-  Coins
+  Coins,
+  Navigation,
+  ExternalLink
 } from 'lucide-react';
 
 interface SupervisorConfig {
@@ -480,8 +482,48 @@ export const PointsManagementPage: React.FC = () => {
                               ))}
                             </div>
 
+                            {/* عنوان النقطة وإحداثياتها */}
+                            <div className="pt-2 border-t border-slate-200/70 space-y-2">
+                              {/* 1. عنوان النقطة */}
+                              <div className="flex items-start gap-2 text-xs bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                                <MapPin className="w-4 h-4 text-aei-purple shrink-0 mt-0.5" />
+                                <div className="space-y-0.5 min-w-0 flex-1">
+                                  <span className="text-[10px] text-slate-400 block font-bold leading-none">عنوان النقطة:</span>
+                                  <span className="font-bold text-slate-800 text-xs leading-relaxed block break-words">
+                                    {pt.address_details}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* 2. إحداثيات النقطة */}
+                              <div className="flex items-center justify-between gap-2 bg-emerald-50/70 p-2 rounded-xl border border-emerald-200/70 text-xs">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <Navigation className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                                  <div className="min-w-0">
+                                    <span className="text-[9px] text-emerald-800 font-bold block leading-none">إحداثيات النقطة:</span>
+                                    <span className="font-mono text-[11px] font-black text-emerald-950 block pt-0.5" dir="ltr">
+                                      {pt.latitude ? `${pt.latitude.toFixed(4)}, ${pt.longitude?.toFixed(4)}` : 'غير محدد'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {pt.latitude && pt.longitude && (
+                                  <a
+                                    href={`https://maps.google.com/?q=${pt.latitude},${pt.longitude}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold flex items-center gap-1 transition-all shrink-0 shadow-2xs cursor-pointer"
+                                    title="فتح الموقع على خرائط Google"
+                                  >
+                                    <span>خرائط Google</span>
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+
                             {/* بيانات الكادر والمسؤول */}
-                            <div className="pt-2.5 border-t border-slate-200/70 text-xs space-y-1.5 text-slate-600">
+                            <div className="pt-2 border-t border-slate-200/70 text-xs space-y-1.5 text-slate-600">
                               <div className="flex items-center justify-between">
                                 <span className="text-slate-400 flex items-center gap-1 text-[11px]">
                                   <Users className="w-3.5 h-3.5" />
@@ -535,6 +577,36 @@ export const PointsManagementPage: React.FC = () => {
               >
                 <X className="w-4 h-4" />
               </button>
+            </div>
+
+            {/* بطاقة العنوان والإحداثيات التفصيلية في المودال */}
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2.5 shrink-0">
+              <div className="flex items-start gap-2.5 text-xs">
+                <MapPin className="w-4 h-4 text-aei-purple shrink-0 mt-0.5" />
+                <div>
+                  <span className="text-slate-400 font-bold block text-[10px]">العنوان الجغرافي التفصيلي:</span>
+                  <span className="font-bold text-slate-800 text-xs leading-relaxed">{inspectingPoint.address_details}</span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-slate-200/80 text-xs">
+                <div className="flex items-center gap-1.5 font-mono text-[11px] text-emerald-800 font-bold" dir="ltr">
+                  <Navigation className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>GPS: {inspectingPoint.latitude ? `${inspectingPoint.latitude.toFixed(4)}, ${inspectingPoint.longitude?.toFixed(4)}` : 'غير محدد'}</span>
+                </div>
+
+                {inspectingPoint.latitude && inspectingPoint.longitude && (
+                  <a
+                    href={`https://maps.google.com/?q=${inspectingPoint.latitude},${inspectingPoint.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
+                  >
+                    <span>فتح الموقع على خرائط Google</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
+              </div>
             </div>
 
             <div className="overflow-y-auto flex-1 space-y-4">
