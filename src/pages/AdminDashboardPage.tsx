@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import {
   Users,
   UserCheck,
@@ -184,13 +184,19 @@ export const AdminDashboardPage: React.FC = () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       try {
-        const bstr = evt.target?.result;
-        const wb = XLSX.read(bstr, { type: 'binary' });
-        const wsName = wb.SheetNames[0];
-        const ws = wb.Sheets[wsName];
-        const rawJson: any[] = XLSX.utils.sheet_to_json(ws);
+        const wb = new ExcelJS.Workbook();
+        await wb.xlsx.load(evt.target!.result as ArrayBuffer);
+        const ws = wb.worksheets[0];
+        const headers = ws.getRow(1).values as string[];
+        const rawJson: Record<string, unknown>[] = [];
+        ws.eachRow((row, number) => {
+          if (number === 1) return;
+          const record: Record<string, unknown> = {};
+          headers.forEach((header, index) => { if (header && index) record[header] = row.getCell(index).text; });
+          rawJson.push(record);
+        });
 
         // توحيد مسميات الأعمدة
         const parsed = rawJson.map((row) => ({
@@ -210,7 +216,7 @@ export const AdminDashboardPage: React.FC = () => {
         alert('حدث خطأ أثناء قراءة ملف الإكسل. يرجى التأكد من صيغة الملف (.xlsx أو .xls)');
       }
     };
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
   };
 
   const handleConfirmImport = () => {

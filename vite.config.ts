@@ -12,5 +12,8 @@ export default defineConfig({
   server: {
     port: 3000,
     open: false,
+    proxy: process.env.HR_LOCAL_PREVIEW === '1' ? {
+      '/mock': { target: 'http://127.0.0.1:54329', changeOrigin: true, rewrite: path => path.replace(/^\/mock/, '') },
+    } : undefined,
   },
 });

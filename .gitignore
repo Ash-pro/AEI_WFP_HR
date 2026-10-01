@@ -13,6 +13,11 @@ build
 .env
 .env.local
 .env.*.local
+.env.server
+.private/
+.credentials/
+.supabase/
+*.tsbuildinfo
 
 # Vercel
 .vercel

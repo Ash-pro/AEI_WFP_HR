@@ -1,0 +1,37 @@
+{
+  "version": "5",
+  "redirects": {
+    "https://esm.sh/@supabase/supabase-js@2": "https://esm.sh/@supabase/supabase-js@2.117.2"
+  },
+  "remote": {
+    "https://esm.sh/@supabase/supabase-js@2.117.2": "6da4477d96ad4392b5a8be8f423384a3812cdd651df483e433ba422a69ff879b"
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@electric-sql/pglite@~0.5.8",
+        "npm:@supabase/supabase-js@^2.48.1",
+        "npm:@types/canvas-confetti@^1.9.0",
+        "npm:@types/node@^22.13.4",
+        "npm:@types/react-dom@^18.3.5",
+        "npm:@types/react@^18.3.18",
+        "npm:@vitejs/plugin-react@^4.3.4",
+        "npm:autoprefixer@^10.4.20",
+        "npm:canvas-confetti@^1.9.4",
+        "npm:clsx@^2.1.1",
+        "npm:exceljs@^4.4.0",
+        "npm:lucide-react@0.475",
+        "npm:postcss@^8.5.2",
+        "npm:prettier@^3.9.9",
+        "npm:qrcode.react@^4.2.0",
+        "npm:react-dom@^18.3.1",
+        "npm:react-router-dom@^6.30.6",
+        "npm:react@^18.3.1",
+        "npm:tailwind-merge@^3.0.1",
+        "npm:tailwindcss@^3.4.17",
+        "npm:typescript@^5.7.3",
+        "npm:vite@^6.1.0"
+      ]
+    }
+  }
+}
