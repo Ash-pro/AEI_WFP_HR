@@ -1,13 +1,20 @@
 import React, { lazy, Suspense, useEffect, useState } from "react";
-import { BrowserRouter, useNavigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { account, configured, db, profile } from "./api";
 import { message, type Profile } from "./model";
 import "./hr.css";
 import { LegacyBackup } from "./LegacyBackup";
+import { PublicHome, PublicRegistration } from "./PublicPortal";
 const Workspace = lazy(() =>
   import("./Workspace").then((m) => ({ default: m.Workspace })),
 );
 function SessionApp() {
+  const location = useLocation();
   const [user, setUser] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -19,6 +26,23 @@ function SessionApp() {
   const [staff, setStaff] = useState(false);
   const [show, setShow] = useState(false);
   const navigate = useNavigate();
+  const requestedTab = new URLSearchParams(location.search).get("next");
+  useEffect(() => {
+    if (location.pathname === "/login")
+      setStaff(
+        new URLSearchParams(location.search).get("account") === "employee",
+      );
+  }, [location.pathname, location.search]);
+  useEffect(() => {
+    if (user && !user.must_change_password && location.pathname === "/login") {
+      const target =
+        user.role === "employee" &&
+        ["leaves", "resignations"].includes(requestedTab || "")
+          ? `/workspace/${requestedTab}?new=1`
+          : `/workspace/${user.role === "hr_observer" ? "points" : "employees"}`;
+      navigate(target, { replace: true });
+    }
+  }, [user, location.pathname, requestedTab]);
   async function restore() {
     try {
       setUser(await profile());
@@ -70,7 +94,10 @@ function SessionApp() {
       setUser(p);
       setPassword("");
       navigate(
-        `/workspace/${p.role === "hr_observer" ? "points" : "employees"}`,
+        p.role === "employee" &&
+          ["leaves", "resignations"].includes(requestedTab || "")
+          ? `/workspace/${requestedTab}?new=1`
+          : `/workspace/${p.role === "hr_observer" ? "points" : "employees"}`,
         { replace: true },
       );
     } catch (e) {
@@ -85,6 +112,8 @@ function SessionApp() {
     setPassword("");
     navigate("/login", { replace: true });
   }
+  if (location.pathname === "/") return <PublicHome />;
+  if (location.pathname === "/register") return <PublicRegistration />;
   if (loading)
     return (
       <div className="hr-app">
@@ -104,6 +133,9 @@ function SessionApp() {
   return (
     <div className="hr-app">
       <main className="hr-main">
+        <Link className="button" to="/">
+          العودة للرئيسية
+        </Link>
         <div className="panel auth">
           <div className="hr-brand">
             <img src="/branding/aei_wfp_hr_icon.jpg" alt="شعار أرض الإنسان" />
@@ -239,9 +271,13 @@ function SessionApp() {
                 {busy ? "جارٍ التحقق…" : "تسجيل الدخول"}
               </button>
               <small>
-                لإنشاء حساب أو استعادة الوصول، راجع مسؤول الموارد البشرية. لا
-                توجد حسابات دخول تجريبية.
+                {staff
+                  ? "للموظف الحالي: استخدم الرمز المؤقت الذي تسلمته من الإدارة، ثم اختر PIN الخاص بك عند أول دخول. لاستعادة الوصول راجع الإدارة."
+                  : "استخدم حساب الإدارة المعتمد. يمكنك تغيير كلمة المرور من داخل حسابك."}
               </small>
+              {staff && (
+                <Link to="/register">موظف جديد؟ سجّل بياناتك واختر PIN</Link>
+              )}
             </form>
           )}
         </div>

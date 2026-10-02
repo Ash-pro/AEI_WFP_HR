@@ -461,4 +461,83 @@ test("bootstrap cannot be invoked by user accounts or overwrite existing data", 
     /already contains/,
   );
 });
+test("public registration is service-only, pending, and cannot claim an existing employee", async () => {
+  const newUser = "00000000-0000-4000-8000-000000000050";
+  const payload = {
+    full_name_ar: "New applicant",
+    phone: "0593333333",
+    job_title: "Worker",
+    pin: "not-stored",
+    role: "super_admin",
+    supervisor_name: "forged",
+    department: "forged",
+  };
+  await as(admin);
+  await assert.rejects(
+    () =>
+      db.query("select hr_register_employee($1,$2,$3)", [
+        newUser,
+        "444444444",
+        JSON.stringify(payload),
+      ]),
+    /permission denied/,
+  );
+  await db.exec("reset role");
+  await db.query("insert into auth.users values($1)", [newUser]);
+  const registered = (
+    await db.query("select hr_register_employee($1,$2,$3) as id", [
+      newUser,
+      "444444444",
+      JSON.stringify(payload),
+    ])
+  ).rows[0].id;
+  const e = (
+    await db.query("select * from hr_employees where id=$1", [registered])
+  ).rows[0];
+  assert.equal(e.status, "معلق");
+  assert.equal(e.point_id, null);
+  assert.equal(e.data.pin, undefined);
+  assert.equal(e.data.role, undefined);
+  assert.equal(e.data.supervisor_name, undefined);
+  const p = (await db.query("select * from hr_profiles where id=$1", [newUser]))
+    .rows[0];
+  assert.equal(p.role, "employee");
+  assert.equal(p.employee_id, registered);
+  assert.equal(p.must_change_password, false);
+  await assert.rejects(
+    () =>
+      db.query("select hr_register_employee($1,$2,$3)", [
+        newUser,
+        "111111111",
+        JSON.stringify(payload),
+      ]),
+    /duplicate/,
+  );
+  assert.equal(
+    (await db.query("select data from hr_employees where id=$1", [a.id]))
+      .rows[0].data.full_name_ar,
+    "Employee A",
+  );
+  await as(newUser);
+  await assert.rejects(
+    () =>
+      rpc("leave_submit", "10000000-0000-4000-8000-000000000050", {
+        employee_id: registered,
+        start_date: today,
+        end_date: today,
+        leave_type: "سنوية",
+      }),
+    /غير نشط/,
+  );
+  await as(admin);
+  await rpc("employee_approve", registered, {
+    version: 1,
+    reason: "verified applicant",
+  });
+  await as(newUser);
+  const report = (await db.query("select hr_report($1) as r", [month])).rows[0]
+    .r;
+  assert.equal(report.employees.length, 1);
+  assert.equal(report.employees[0].id, registered);
+});
 test.after(async () => await db.close());

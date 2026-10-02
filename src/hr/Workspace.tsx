@@ -206,6 +206,25 @@ export function Workspace({
     };
   }, [month]);
   useEffect(() => setPage(0), [search, pointFilter, statusFilter, month]);
+  useEffect(() => {
+    if (
+      employee &&
+      data &&
+      !loading &&
+      params.get("new") === "1" &&
+      ["leaves", "resignations"].includes(tab)
+    ) {
+      setRequestId(crypto.randomUUID());
+      setRequestValues({
+        employee_id: user.employee_id || "",
+        leave_type: "سنوية",
+      });
+      setRequestForm(tab === "leaves" ? "leave" : "resignation");
+      const next = new URLSearchParams(params);
+      next.delete("new");
+      setParams(next, { replace: true });
+    }
+  }, [employee, data, loading, tab, params]);
   async function viewDocument(path: string) {
     setError("");
     try {
@@ -768,6 +787,18 @@ export function Workspace({
               )}
               {tab === "approvals" && (
                 <>
+                  {manage && (
+                    <section className="panel">
+                      <h2>تسجيلات الموظفين بانتظار الاعتماد</h2>
+                      <p>
+                        افتح ملف الموظف لمراجعة بياناته وتحديد نقطة عمله ثم
+                        اعتماد التسجيل.
+                      </p>
+                      {employeesTable(
+                        data.employees.filter((e) => e.status === "معلق"),
+                      )}
+                    </section>
+                  )}
                   <p className="notice">
                     قائمة متابعة لجميع الطلبات غير المحسومة، بما فيها طلبات
                     الأشهر السابقة والمستقبلية. التقارير الشهرية مستقلة عن هذه

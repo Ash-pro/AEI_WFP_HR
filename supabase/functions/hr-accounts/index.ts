@@ -37,6 +37,83 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return respond({ error: "طريقة غير مسموحة" }, 405);
   try {
     const b = await req.json();
+    if (b.action === "employee_register") {
+      const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+      const digest = async (s: string) =>
+        Array.from(
+          new Uint8Array(
+            await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)),
+          ),
+          (v) => v.toString(16).padStart(2, "0"),
+        ).join("");
+      for (const [key, limit] of [
+        [await digest("register-ip:" + ip), 10],
+        [await digest("register-nid:" + String(b.national_id)), 3],
+      ] as [string, number][]) {
+        const rate = await service.rpc("hr_login_limit", {
+          p_key: key,
+          p_limit: limit,
+        });
+        check(rate.error);
+        if (!rate.data)
+          return respond({ error: "محاولات كثيرة؛ حاول بعد 15 دقيقة." }, 429);
+      }
+      if (
+        !/^\d{9}$/.test(b.national_id || "") ||
+        !/^\d{8,12}$/.test(b.password || "") ||
+        !b.data ||
+        Array.isArray(b.data) ||
+        typeof b.data !== "object" ||
+        JSON.stringify(b.data).length > 16000 ||
+        String(b.data.full_name_ar || "").trim().length < 3 ||
+        String(b.data.phone || "").trim().length < 7 ||
+        !String(b.data.job_title || "").trim()
+      )
+        return respond(
+          {
+            error:
+              "راجع رقم الهوية والاسم والجوال والمسمى الوظيفي ورمز PIN (8 إلى 12 رقمًا).",
+          },
+          400,
+        );
+      const { data: existing, error: lookupError } = await service
+        .from("hr_employees")
+        .select("id")
+        .eq("national_id", b.national_id)
+        .maybeSingle();
+      check(lookupError);
+      if (existing)
+        return respond(
+          {
+            error:
+              "تعذر إنشاء ملف بهذه البيانات. إن سبق تسجيلك، استخدم الدخول أو راجع الإدارة لتفعيل حسابك.",
+          },
+          409,
+        );
+      const created = await service.auth.admin.createUser({
+        email: `${crypto.randomUUID()}@staff.aei.invalid`,
+        password: b.password,
+        email_confirm: true,
+        app_metadata: { hr_session_version: 0 },
+      });
+      check(created.error);
+      const registered = await service.rpc("hr_register_employee", {
+        p_user: created.data.user!.id,
+        p_national_id: b.national_id,
+        p_data: b.data,
+      });
+      if (registered.error) {
+        await service.auth.admin.deleteUser(created.data.user!.id);
+        return respond(
+          {
+            error:
+              "تعذر قبول التسجيل. راجع البيانات وأعداد الأسرة والتواريخ أو تواصل مع الإدارة إذا سبق التسجيل.",
+          },
+          400,
+        );
+      }
+      return respond({ success: true, pending_approval: true });
+    }
     if (b.action === "employee_login") {
       if (
         !/^\d{9}$/.test(b.national_id || "") ||
@@ -176,13 +253,11 @@ Deno.serve(async (req) => {
       await verifier.auth.signOut();
       check(
         (
-          await service
-            .from("hr_audit")
-            .insert({
-              actor: user.id,
-              action: "password_changed",
-              record_id: user.id,
-            })
+          await service.from("hr_audit").insert({
+            actor: user.id,
+            action: "password_changed",
+            record_id: user.id,
+          })
         ).error,
       );
       const signed = await anon().auth.signInWithPassword({
@@ -222,14 +297,12 @@ Deno.serve(async (req) => {
         email_confirm: true,
       });
       check(error);
-      const profile = await service
-        .from("hr_profiles")
-        .insert({
-          id: data.user!.id,
-          name: b.name,
-          role: b.role,
-          must_change_password: true,
-        });
+      const profile = await service.from("hr_profiles").insert({
+        id: data.user!.id,
+        name: b.name,
+        role: b.role,
+        must_change_password: true,
+      });
       if (profile.error) {
         await service.auth.admin.deleteUser(data.user!.id);
         check(profile.error);
@@ -278,15 +351,13 @@ Deno.serve(async (req) => {
           email_confirm: true,
         });
         check(error);
-        const added = await service
-          .from("hr_profiles")
-          .insert({
-            id: data.user!.id,
-            name: e!.data.full_name_ar,
-            role: "employee",
-            employee_id: b.id,
-            must_change_password: true,
-          });
+        const added = await service.from("hr_profiles").insert({
+          id: data.user!.id,
+          name: e!.data.full_name_ar,
+          role: "employee",
+          employee_id: b.id,
+          must_change_password: true,
+        });
         if (added.error) {
           await service.auth.admin.deleteUser(data.user!.id);
           check(added.error);
@@ -366,14 +437,12 @@ Deno.serve(async (req) => {
     } else return respond({ error: "إجراء غير معروف" }, 400);
     check(
       (
-        await service
-          .from("hr_audit")
-          .insert({
-            actor: user.id,
-            action: b.action,
-            record_id: b.id || b.username,
-            after_data: { role: b.role, active: b.active },
-          })
+        await service.from("hr_audit").insert({
+          actor: user.id,
+          action: b.action,
+          record_id: b.id || b.username,
+          after_data: { role: b.role, active: b.active },
+        })
       ).error,
     );
     return respond(result);
