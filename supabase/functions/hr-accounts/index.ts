@@ -37,6 +37,123 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return respond({ error: "طريقة غير مسموحة" }, 405);
   try {
     const b = await req.json();
+    const titles = [
+      "منسق مشروع",
+      "قائد فرق ميدانية",
+      "عامل صحة ميداني",
+      "متطوع",
+      "أمن",
+    ];
+    if (
+      [
+        "employee_registration_check",
+        "employee_registration_read",
+        "employee_registration_save",
+      ].includes(b.action)
+    ) {
+      if (!/^\d{9}$/.test(b.national_id || ""))
+        return respond({ error: "أدخل رقم هوية من 9 أرقام" }, 400);
+      const digest = async (s: string) =>
+        Array.from(
+          new Uint8Array(
+            await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)),
+          ),
+          (v) => v.toString(16).padStart(2, "0"),
+        ).join("");
+      const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+      for (const [key, limit] of [
+        [await digest("registration-access-ip:" + ip), 40],
+        [await digest("registration-access-nid:" + b.national_id), 15],
+      ] as [string, number][]) {
+        const rate = await service.rpc("hr_login_limit", {
+          p_key: key,
+          p_limit: limit,
+        });
+        check(rate.error);
+        if (!rate.data)
+          return respond({ error: "محاولات كثيرة؛ حاول بعد 15 دقيقة." }, 429);
+      }
+      const found = await service
+        .from("hr_employees")
+        .select("*")
+        .eq("national_id", b.national_id)
+        .maybeSingle();
+      check(found.error);
+      const e = found.data;
+      const profile = e
+        ? await service
+            .from("hr_profiles")
+            .select("*")
+            .eq("employee_id", e.id)
+            .eq("role", "employee")
+            .maybeSingle()
+        : { data: null, error: null };
+      check(profile.error);
+      const p = profile.data;
+      if (b.action === "employee_registration_check")
+        return respond({ exists: !!e, can_verify: !!p?.active });
+      if (
+        !e ||
+        !p?.active ||
+        !["معلق", "نشط"].includes(e.status) ||
+        typeof b.password !== "string"
+      )
+        return respond(
+          { error: "تعذر التحقق من الحساب. راجع الإدارة لإصدار رمز دخول." },
+          403,
+        );
+      if (p.must_change_password)
+        return respond(
+          {
+            error:
+              "سجّل الدخول وغيّر الرمز المؤقت أولًا، ثم ارجع لاستكمال الملف.",
+          },
+          403,
+        );
+      const identity = await service.auth.admin.getUserById(p.id);
+      check(identity.error);
+      const verifier = anon();
+      const signed = await verifier.auth.signInWithPassword({
+        email: identity.data.user!.email!,
+        password: b.password,
+      });
+      if (signed.error || !signed.data.session)
+        return respond({ error: "رمز PIN غير صحيح" }, 401);
+      try {
+        if (b.action === "employee_registration_save") {
+          if (
+            !b.data ||
+            typeof b.data !== "object" ||
+            Array.isArray(b.data) ||
+            JSON.stringify(b.data).length > 16000
+          )
+            return respond({ error: "بيانات غير صالحة" }, 400);
+          const saved = await service.rpc("hr_registration_save", {
+            p_user: p.id,
+            p_version: b.version,
+            p_revision: b.request_revision ?? null,
+            p_data: b.data,
+          });
+          if (saved.error) return respond({ error: saved.error.message }, 400);
+          return respond(saved.data);
+        }
+        const pending = await service
+          .from("hr_profile_requests")
+          .select("data,revision")
+          .eq("employee_id", e.id)
+          .eq("status", "معلق")
+          .maybeSingle();
+        check(pending.error);
+        return respond({
+          data: { ...e.data, ...pending.data?.data },
+          version: e.version,
+          status: e.status,
+          request_revision: pending.data?.revision ?? null,
+        });
+      } finally {
+        await verifier.auth.signOut({ scope: "local" });
+      }
+    }
     if (b.action === "employee_register") {
       const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
       const digest = async (s: string) =>
@@ -67,7 +184,7 @@ Deno.serve(async (req) => {
         JSON.stringify(b.data).length > 16000 ||
         String(b.data.full_name_ar || "").trim().length < 3 ||
         String(b.data.phone || "").trim().length < 7 ||
-        !String(b.data.job_title || "").trim()
+        !titles.includes(String(b.data.job_title || ""))
       )
         return respond(
           {

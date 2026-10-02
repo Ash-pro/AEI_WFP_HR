@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CalendarDays,
@@ -141,11 +141,73 @@ export function PublicRegistration() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
-  const fields = employeeFields.filter(
-    (f) =>
-      f.type !== "file" &&
-      !["supervisor_name", "department", "category", "notes"].includes(f.key),
-  );
+  const [lookup, setLookup] = useState<{
+    exists: boolean;
+    can_verify: boolean;
+  } | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const [existing, setExisting] = useState<{
+    version: number;
+    request_revision: number | null;
+    status: string;
+  } | null>(null);
+  const latestNid = useRef(nid);
+  latestNid.current = nid;
+  useEffect(() => {
+    let alive = true;
+    setLookup(null);
+    setExisting(null);
+    setData({});
+    setPin("");
+    setConfirm("");
+    setError("");
+    setDone(false);
+    if (!/^\d{9}$/.test(nid)) {
+      setChecking(false);
+      return;
+    }
+    setChecking(true);
+    const timer = setTimeout(() => {
+      void account("employee_registration_check", { national_id: nid })
+        .then((result) => {
+          if (alive) setLookup(result);
+        })
+        .catch((err) => {
+          if (alive) setError(message(err));
+        })
+        .finally(() => {
+          if (alive) setChecking(false);
+        });
+    }, 450);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [nid, retry]);
+  const fields = employeeFields
+    .filter(
+      (f) =>
+        f.type !== "file" &&
+        (!!existing ||
+          !["supervisor_name", "department", "category", "notes"].includes(
+            f.key,
+          )),
+    )
+    .map((f) =>
+      f.key === "job_title"
+        ? {
+            ...f,
+            options: [
+              "منسق مشروع",
+              "قائد فرق ميدانية",
+              "عامل صحة ميداني",
+              "متطوع",
+              "أمن",
+            ],
+          }
+        : f,
+    );
   return (
     <div className="hr-app">
       <main className="hr-main">
@@ -154,27 +216,124 @@ export function PublicRegistration() {
         </Link>
         <section className="panel registration-panel">
           <h1>تسجيل موظف جديد</h1>
+          {!done && (
+            <section className="panel">
+              <label>
+                رقم الهوية — ابدأ من هنا
+                <input
+                  required
+                  pattern="[0-9]{9}"
+                  maxLength={9}
+                  inputMode="numeric"
+                  autoComplete="username"
+                  dir="ltr"
+                  value={nid}
+                  disabled={busy}
+                  onChange={(e) => setNid(e.target.value)}
+                />
+              </label>
+              <small>
+                نفحص وجود ملف سابق تلقائيًا عند اكتمال رقم الهوية، قبل تعبئة
+                البيانات.
+              </small>
+              {checking && <p role="status">جارٍ فحص رقم الهوية…</p>}
+              {lookup && !lookup.exists && (
+                <p role="status">
+                  لا يوجد ملف سابق. يمكنك تعبئة تسجيل جديد أدناه.
+                </p>
+              )}
+              {lookup?.exists && !existing && (
+                <>
+                  <p className="notice">
+                    يوجد ملف مسجّل بهذه الهوية.
+                    {lookup.can_verify
+                      ? " أدخل PIN لعرض بياناتك واستكمال تعديلها."
+                      : " راجع الإدارة لإصدار رمز الدخول لحسابك، ثم اختر PIN الخاص بك من صفحة الدخول."}
+                  </p>
+                  {lookup.can_verify ? (
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        setBusy(true);
+                        setError("");
+                        const checked = nid;
+                        try {
+                          const result = await account(
+                            "employee_registration_read",
+                            { national_id: nid, password: pin },
+                          );
+                          if (latestNid.current !== checked) return;
+                          setData(result.data);
+                          setExisting({
+                            version: result.version,
+                            request_revision: result.request_revision,
+                            status: result.status,
+                          });
+                        } catch (err) {
+                          setError(message(err));
+                        } finally {
+                          setBusy(false);
+                        }
+                      }}
+                    >
+                      <label>
+                        رمز PIN الحالي
+                        <input
+                          type="password"
+                          required
+                          autoComplete="current-password"
+                          value={pin}
+                          onChange={(e) => setPin(e.target.value)}
+                        />
+                      </label>
+                      <button className="primary" disabled={busy}>
+                        {busy ? "جارٍ التحقق…" : "عرض بياناتي وتعديلها"}
+                      </button>
+                    </form>
+                  ) : null}
+                  <Link to="/login?account=employee">
+                    الدخول للحساب أو تغيير الرمز المؤقت
+                  </Link>
+                </>
+              )}
+              {error && (!lookup || (lookup.exists && !existing)) && (
+                <p role="alert" className="notice error">
+                  {error}
+                </p>
+              )}
+              {!checking && !lookup && /^\d{9}$/.test(nid) && error && (
+                <button type="button" onClick={() => setRetry((v) => v + 1)}>
+                  إعادة فحص الهوية
+                </button>
+              )}
+            </section>
+          )}
           {done ? (
             <div role="status">
-              <h2>تم استلام طلب التسجيل</h2>
+              <h2>
+                {existing
+                  ? "تم حفظ التعديلات للمراجعة"
+                  : "تم استلام طلب التسجيل"}
+              </h2>
               <p>
-                ستراجع الإدارة بياناتك. بعد اعتماد ملفك يمكنك الدخول برقم الهوية
-                وPIN الذي اخترته.
+                {existing?.status === "نشط"
+                  ? "أُرسلت التعديلات إلى الإدارة. تبقى بياناتك الحالية معتمدة حتى الموافقة على التعديل."
+                  : "ستراجع الإدارة بياناتك. بعد اعتماد ملفك يمكنك الدخول برقم الهوية وPIN الذي اخترته."}
               </p>
               <Link className="button primary" to="/login?account=employee">
                 الدخول إلى حساب الموظف
               </Link>
             </div>
-          ) : (
+          ) : lookup && (!lookup.exists || existing) ? (
             <>
               <p>
-                أكمل بياناتك واختر رمز PIN خاصًا بك. يخضع التسجيل لاعتماد
-                الإدارة قبل تفعيل الحساب.
+                {existing
+                  ? "تم تحميل بيانات ملفك. عدّل الحقول ثم احفظ؛ تعديلات الملف النشط تحتاج اعتماد الإدارة."
+                  : "أكمل بياناتك واختر رمز PIN خاصًا بك. يخضع التسجيل لاعتماد الإدارة قبل تفعيل الحساب."}
               </p>
               <p className="notice">
-                إذا كان لديك ملف سابق، استخدم صفحة الدخول واطلب رمزًا مؤقتًا من
-                الإدارة. لا تنشئ ملفًا جديدًا لنفس الهوية. يمكنك استكمال
-                المرفقات من حسابك بعد التفعيل.
+                يمكنك استكمال المرفقات من حسابك بعد التفعيل. تعديل هذا النموذج
+                لا يغيّر رقم الهوية أو رمز PIN أو الصلاحيات.
               </p>
               <form
                 onSubmit={async (e) => {
@@ -182,12 +341,20 @@ export function PublicRegistration() {
                   setError("");
                   setBusy(true);
                   try {
-                    if (pin !== confirm) throw new Error("تأكيد PIN غير مطابق");
-                    await account("employee_register", {
-                      national_id: nid,
-                      password: pin,
-                      data,
-                    });
+                    if (!existing && pin !== confirm)
+                      throw new Error("تأكيد PIN غير مطابق");
+                    await account(
+                      existing
+                        ? "employee_registration_save"
+                        : "employee_register",
+                      {
+                        national_id: nid,
+                        password: pin,
+                        data,
+                        version: existing?.version,
+                        request_revision: existing?.request_revision,
+                      },
+                    );
                     setPin("");
                     setConfirm("");
                     setDone(true);
@@ -198,47 +365,49 @@ export function PublicRegistration() {
                   }
                 }}
               >
-                <fieldset>
-                  <legend>بيانات الدخول</legend>
-                  <div className="form-grid">
-                    <label>
-                      رقم الهوية
-                      <input
-                        required
-                        pattern="[0-9]{9}"
-                        maxLength={9}
-                        inputMode="numeric"
-                        autoComplete="username"
-                        dir="ltr"
-                        value={nid}
-                        onChange={(e) => setNid(e.target.value)}
-                      />
-                    </label>
-                    <label>
-                      اختر PIN (8 إلى 12 رقمًا)
-                      <input
-                        required
-                        type="password"
-                        inputMode="numeric"
-                        pattern="[0-9]{8,12}"
-                        autoComplete="new-password"
-                        value={pin}
-                        onChange={(e) => setPin(e.target.value)}
-                      />
-                    </label>
-                    <label>
-                      تأكيد PIN
-                      <input
-                        required
-                        type="password"
-                        inputMode="numeric"
-                        autoComplete="new-password"
-                        value={confirm}
-                        onChange={(e) => setConfirm(e.target.value)}
-                      />
-                    </label>
-                  </div>
-                </fieldset>
+                {!existing && (
+                  <fieldset>
+                    <legend>بيانات الدخول</legend>
+                    <div className="form-grid">
+                      <label>
+                        رقم الهوية
+                        <input
+                          required
+                          pattern="[0-9]{9}"
+                          maxLength={9}
+                          inputMode="numeric"
+                          autoComplete="username"
+                          dir="ltr"
+                          value={nid}
+                          readOnly
+                        />
+                      </label>
+                      <label>
+                        اختر PIN (8 إلى 12 رقمًا)
+                        <input
+                          required
+                          type="password"
+                          inputMode="numeric"
+                          pattern="[0-9]{8,12}"
+                          autoComplete="new-password"
+                          value={pin}
+                          onChange={(e) => setPin(e.target.value)}
+                        />
+                      </label>
+                      <label>
+                        تأكيد PIN
+                        <input
+                          required
+                          type="password"
+                          inputMode="numeric"
+                          autoComplete="new-password"
+                          value={confirm}
+                          onChange={(e) => setConfirm(e.target.value)}
+                        />
+                      </label>
+                    </div>
+                  </fieldset>
+                )}
                 {[...new Set(fields.map((f) => f.group))].map((group) => (
                   <fieldset key={group}>
                     <legend>{group}</legend>
@@ -251,6 +420,15 @@ export function PublicRegistration() {
                             {f.required ? " *" : ""}
                             {f.options ? (
                               <select
+                                disabled={
+                                  !!existing &&
+                                  [
+                                    "supervisor_name",
+                                    "department",
+                                    "category",
+                                    "notes",
+                                  ].includes(f.key)
+                                }
                                 required={f.required}
                                 value={String(data[f.key] || "")}
                                 onChange={(e) =>
@@ -258,6 +436,17 @@ export function PublicRegistration() {
                                 }
                               >
                                 <option value="">اختر</option>
+                                {f.key === "job_title" &&
+                                  data[f.key] &&
+                                  !f.options.includes(String(data[f.key])) && (
+                                    <option
+                                      value={String(data[f.key])}
+                                      disabled
+                                    >
+                                      {String(data[f.key])} — اختر المسمى
+                                      المحدّث
+                                    </option>
+                                  )}
                                 {f.options.map((o) => (
                                   <option key={o}>{o}</option>
                                 ))}
@@ -278,6 +467,15 @@ export function PublicRegistration() {
                               <input
                                 required={f.required}
                                 type={f.type || "text"}
+                                readOnly={
+                                  !!existing &&
+                                  [
+                                    "supervisor_name",
+                                    "department",
+                                    "category",
+                                    "notes",
+                                  ].includes(f.key)
+                                }
                                 min={f.type === "number" ? 0 : undefined}
                                 maxLength={
                                   f.type === "number" ? undefined : 300
@@ -307,11 +505,15 @@ export function PublicRegistration() {
                   </p>
                 )}
                 <button className="primary" disabled={busy}>
-                  {busy ? "جارٍ إرسال التسجيل…" : "إرسال التسجيل للمراجعة"}
+                  {busy
+                    ? "جارٍ الحفظ…"
+                    : existing
+                      ? "حفظ تعديلات الملف"
+                      : "إرسال التسجيل للمراجعة"}
                 </button>
               </form>
             </>
-          )}
+          ) : null}
         </section>
       </main>
     </div>

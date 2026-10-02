@@ -540,4 +540,110 @@ test("public registration is service-only, pending, and cannot claim an existing
   assert.equal(report.employees.length, 1);
   assert.equal(report.employees[0].id, registered);
 });
+test("resuming registration updates pending files and submits active changes for approval", async () => {
+  const applicant = "00000000-0000-4000-8000-000000000060";
+  const fields = {
+    full_name_ar: "Resume applicant",
+    phone: "0598888888",
+    job_title: "متطوع",
+  };
+  await db.exec("reset role");
+  await db.query("insert into auth.users values($1)", [applicant]);
+  const eid = (
+    await db.query("select hr_register_employee($1,$2,$3) as id", [
+      applicant,
+      "555555555",
+      JSON.stringify(fields),
+    ])
+  ).rows[0].id;
+  await as(applicant);
+  await assert.rejects(
+    () =>
+      db.query("select hr_registration_save($1,1,null,$2)", [
+        applicant,
+        JSON.stringify(fields),
+      ]),
+    /permission denied/,
+  );
+  await db.exec("reset role");
+  await db.query("select hr_registration_save($1,1,null,$2)", [
+    applicant,
+    JSON.stringify({ ...fields, phone: "0599999999", pin: "never-store" }),
+  ]);
+  const pending = (
+    await db.query("select * from hr_employees where id=$1", [eid])
+  ).rows[0];
+  assert.equal(pending.status, "معلق");
+  assert.equal(pending.version, 2);
+  assert.equal(pending.data.phone, "0599999999");
+  assert.equal(pending.data.pin, undefined);
+  await assert.rejects(
+    () =>
+      db.query("select hr_registration_save($1,1,null,$2)", [
+        applicant,
+        JSON.stringify(fields),
+      ]),
+    /تغير الملف/,
+  );
+  await as(admin);
+  await rpc("employee_approve", eid, {
+    version: 2,
+    reason: "review completed",
+  });
+  await db.exec("reset role");
+  await db.query("select hr_registration_save($1,3,null,$2)", [
+    applicant,
+    JSON.stringify({ ...fields, phone: "0597777777" }),
+  ]);
+  assert.equal(
+    (await db.query("select data from hr_employees where id=$1", [eid])).rows[0]
+      .data.phone,
+    "0599999999",
+  );
+  const q = (
+    await db.query(
+      "select * from hr_profile_requests where employee_id=$1 and status='معلق'",
+      [eid],
+    )
+  ).rows[0];
+  assert.equal(q.revision, 1);
+  await assert.rejects(
+    () =>
+      db.query("select hr_registration_save($1,3,null,$2)", [
+        applicant,
+        JSON.stringify(fields),
+      ]),
+    /تغير طلب/,
+  );
+  await db.query("select hr_registration_save($1,3,1,$2)", [
+    applicant,
+    JSON.stringify({ ...fields, phone: "0596666666" }),
+  ]);
+  await assert.rejects(
+    () =>
+      db.query("select hr_registration_save($1,3,1,$2)", [
+        applicant,
+        JSON.stringify(fields),
+      ]),
+    /تغير طلب/,
+  );
+  await assert.rejects(
+    () =>
+      db.query("select hr_registration_save($1,3,2,$2)", [
+        applicant,
+        JSON.stringify({ ...fields, job_title: "invalid" }),
+      ]),
+    /المسمى/,
+  );
+  await as(admin);
+  await db.query("select hr_review_profile($1,true,$2)", [
+    q.id,
+    "verified changes",
+  ]);
+  assert.equal(
+    (await db.query("select data from hr_employees where id=$1", [eid])).rows[0]
+      .data.phone,
+    "0596666666",
+  );
+});
 test.after(async () => await db.close());
